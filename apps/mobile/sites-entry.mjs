@@ -1,9 +1,8 @@
 import http from "node:http";
 import { createReadStream, existsSync, statSync } from "node:fs";
-import { dirname, extname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { extname, join, resolve } from "node:path";
 
-const root = dirname(fileURLToPath(import.meta.url));
+const root = resolve(process.cwd());
 const port = Number(process.env.PORT ?? 8080);
 
 const types = {
