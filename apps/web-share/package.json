@@ -1,0 +1,11 @@
+{
+  "name": "@frames/web-share",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "echo \"web-share app planned for share links\"",
+    "lint": "echo \"web-share app planned for share links\"",
+    "test": "echo \"web-share app planned for share links\""
+  }
+}

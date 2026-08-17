@@ -1,0 +1,12 @@
+FROM node:22-alpine AS build
+WORKDIR /app
+RUN corepack enable
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.base.json ./
+COPY packages ./packages
+COPY apps/mobile ./apps/mobile
+RUN pnpm install --filter @frames/mobile... --frozen-lockfile
+RUN pnpm --filter @frames/mobile build
+
+FROM nginx:1.27-alpine
+COPY --from=build /app/apps/mobile/dist /usr/share/nginx/html
+EXPOSE 80

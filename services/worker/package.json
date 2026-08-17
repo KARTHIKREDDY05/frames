@@ -1,0 +1,28 @@
+{
+  "name": "@frames/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/services/worker/src/index.js",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@frames/config": "workspace:*",
+    "@frames/templates": "workspace:*",
+    "@prisma/client": "^5.18.0",
+    "bullmq": "^5.12.12",
+    "dotenv": "^16.4.5",
+    "ioredis": "^5.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.0",
+    "typescript": "^5.5.4",
+    "tsx": "^4.17.0",
+    "vitest": "^2.0.5"
+  }
+}

@@ -1,0 +1,9 @@
+node_modules
+.expo
+.env
+.env.local
+dist
+coverage
+.turbo
+*.log
+services/api/prisma/dev.db

@@ -1,0 +1,67 @@
+{
+  "expo": {
+    "name": "Frames",
+    "slug": "frames",
+    "scheme": "frames",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F6F0E7"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Frames uses the camera so you can capture real moments for your daily frame."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Frames uses your photo library so you can choose existing photos and videos for your frame."
+        }
+      ]
+    ],
+    "owner": "frames",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.frames.mobile"
+    },
+    "android": {
+      "package": "app.frames.mobile",
+      "versionCode": 1,
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "READ_MEDIA_IMAGES",
+        "READ_MEDIA_VIDEO",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "POST_NOTIFICATIONS"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#F6F0E7"
+      },
+      "playStoreUrl": "https://play.google.com/store/apps/details?id=app.frames.mobile"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "00000000-0000-0000-0000-000000000000"
+      }
+    }
+  }
+}

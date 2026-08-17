@@ -1,0 +1,14 @@
+Frames is a social scrapbook for everyday memories.
+
+Capture photos and short videos throughout the day, share them for today, and keep them forever in a private scrapbook archive. Frames automatically turns posts into daily memory cards, monthly collages, and year-end stories so you can remember more without organizing albums by hand.
+
+Key features:
+- Capture photo and video Frames
+- Choose Friends or Public privacy per post
+- Browse a 24-hour social feed
+- Keep every post in your private archive
+- Open daily scrapbook cards
+- Build monthly and yearly memory collections
+- Export and share memories intentionally
+
+Frames is designed around one principle: capture now, organize never, remember forever.

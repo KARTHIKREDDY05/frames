@@ -1,0 +1,331 @@
+openapi: 3.1.0
+info:
+  title: Frames API
+  version: 0.1.0
+servers:
+  - url: http://localhost:3001
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: { type: string }
+            message: { type: string }
+    Privacy:
+      type: string
+      enum: [PUBLIC, FRIENDS]
+    FrameStyle:
+      type: string
+      enum: [POLAROID, FILMSTRIP, TORN_PAPER, STICKER, MINIMAL, VINTAGE]
+    User:
+      type: object
+      required: [id, username, displayName, defaultPrivacy]
+      properties:
+        id: { type: string }
+        username: { type: string }
+        displayName: { type: string }
+        email: { type: string, format: email }
+        avatarUrl: { type: [string, "null"], format: uri }
+        bio: { type: [string, "null"] }
+        defaultPrivacy: { $ref: "#/components/schemas/Privacy" }
+    Post:
+      type: object
+      required: [id, mediaType, mediaUrl, privacy, frameStyle, createdAt, expiresAt]
+      properties:
+        id: { type: string }
+        mediaType: { type: string, enum: [IMAGE, VIDEO] }
+        mediaUrl: { type: string, format: uri }
+        thumbnailUrl: { type: [string, "null"], format: uri }
+        caption: { type: [string, "null"] }
+        locationName: { type: [string, "null"] }
+        privacy: { $ref: "#/components/schemas/Privacy" }
+        frameStyle: { $ref: "#/components/schemas/FrameStyle" }
+        createdAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
+paths:
+  /health:
+    get:
+      security: []
+      responses:
+        "200":
+          description: API health
+  /ready:
+    get:
+      security: []
+      responses:
+        "200": { description: API and database readiness }
+        "503": { description: Database unavailable }
+  /admin/overview:
+    get:
+      responses:
+        "200": { description: Administrator aggregate overview }
+        "403": { description: Administrator access required }
+  /admin/users:
+    get:
+      responses:
+        "200": { description: Administrator user list }
+  /admin/users/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Administrator user detail }
+  /admin/users/{id}/role:
+    patch:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Administrator role update }
+  /admin/posts:
+    get:
+      responses:
+        "200": { description: Administrator post list }
+  /admin/storage-map:
+    get:
+      responses:
+        "200": { description: Administrator data storage map }
+  /auth/register:
+    post:
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, displayName, email, password]
+              properties:
+                username: { type: string }
+                displayName: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+      responses:
+        "201":
+          description: Created user and tokens
+  /auth/login:
+    post:
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        "200":
+          description: Authenticated user and tokens
+  /auth/refresh:
+    post:
+      security: []
+      responses:
+        "200": { description: Rotated tokens }
+  /auth/logout:
+    post:
+      responses:
+        "204": { description: Logged out }
+  /users/me:
+    get:
+      responses:
+        "200": { description: Current user }
+    patch:
+      responses:
+        "200": { description: Updated current user }
+  /users/{username}:
+    get:
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: User profile }
+  /users/{id}/friend-request:
+    post:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "201": { description: Friend request }
+  /feed:
+    get:
+      responses:
+        "200": { description: Active feed posts }
+  /friendships:
+    get:
+      responses:
+        "200": { description: Friendships and pending requests }
+  /friendships/requests:
+    post:
+      responses:
+        "201": { description: Friend request created }
+  /friendships/{id}:
+    patch:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Friendship accepted or blocked }
+    delete:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Friendship removed }
+  /posts:
+    post:
+      responses:
+        "201": { description: Created post }
+  /posts/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Post detail }
+    delete:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted post }
+  /posts/{id}/reactions:
+    post:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "201": { description: Reaction }
+  /posts/{id}/comments:
+    post:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "201": { description: Comment }
+  /archive:
+    get:
+      responses:
+        "200": { description: Private archive }
+  /archive/daily/{date}:
+    get:
+      parameters:
+        - in: path
+          name: date
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        "200": { description: Daily frame }
+  /memories/monthly/{year}/{month}:
+    get:
+      parameters:
+        - in: path
+          name: year
+          required: true
+          schema: { type: integer }
+        - in: path
+          name: month
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: Monthly collage }
+  /memories/yearly/{year}:
+    get:
+      parameters:
+        - in: path
+          name: year
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: Yearbook }
+  /exports/pdf:
+    post:
+      responses:
+        "202": { description: PDF export queued }
+  /exports/video:
+    post:
+      responses:
+        "202": { description: Video export queued }
+  /uploads/presign:
+    post:
+      responses:
+        "200": { description: Signed upload URL }
+  /uploads/confirm:
+    post:
+      responses:
+        "202": { description: Media processing queued }
+  /search/archive:
+    get:
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Archive search results }
+  /share/links:
+    get:
+      responses:
+        "200": { description: User share links }
+    post:
+      responses:
+        "201": { description: Share link created }
+  /share/links/{id}:
+    delete:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Share link revoked }
+  /dev/simulate-expiration:
+    post:
+      responses:
+        "200": { description: Local-only 24-hour archive simulation }
+  /notifications:
+    get:
+      responses:
+        "200": { description: Notifications }
+  /notifications/{id}/read:
+    patch:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Notification marked read }

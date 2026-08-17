@@ -1,0 +1,226 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Privacy {
+  PUBLIC
+  FRIENDS
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum FrameStyle {
+  POLAROID
+  FILMSTRIP
+  TORN_PAPER
+  STICKER
+  MINIMAL
+  VINTAGE
+}
+
+enum YearbookStatus {
+  GENERATING
+  READY
+  FAILED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id             String         @id @default(cuid())
+  username       String         @unique
+  displayName    String
+  email          String         @unique
+  passwordHash   String
+  avatarUrl      String?
+  bio            String?
+  defaultPrivacy Privacy        @default(FRIENDS)
+  role           UserRole       @default(USER)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  posts          Post[]
+  reactions      Reaction[]
+  comments       Comment[]
+  dailyFrames    DailyFrame[]
+  monthly        MonthlyCollage[]
+  yearbooks      Yearbook[]
+  shareLinks     ShareLink[]
+  notifications  Notification[]
+  refreshTokens  RefreshToken[]
+  requested      Friendship[]   @relation("requester")
+  received       Friendship[]   @relation("receiver")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+model Friendship {
+  id          String           @id @default(cuid())
+  requesterId String
+  receiverId  String
+  status      FriendshipStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  requester   User             @relation("requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver    User             @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, receiverId])
+}
+
+model Post {
+  id           String       @id @default(cuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mediaType    MediaType
+  mediaUrl     String
+  thumbnailUrl String?
+  caption      String?
+  locationName String?
+  latitude     Float?
+  longitude    Float?
+  privacy      Privacy
+  frameStyle   FrameStyle   @default(POLAROID)
+  createdAt    DateTime     @default(now())
+  expiresAt    DateTime
+  archivedAt   DateTime?
+  deletedAt    DateTime?
+  reactions    Reaction[]
+  comments     Comment[]
+  frameItems   DailyFrameItem[]
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  type      String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId, type])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  text      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DailyFrame {
+  id               String           @id @default(cuid())
+  userId           String
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date             DateTime
+  title            String
+  subtitle         String
+  coverMediaUrl    String?
+  renderedImageUrl String?
+  metadata         Json             @default("{}")
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  items            DailyFrameItem[]
+
+  @@unique([userId, date])
+}
+
+model DailyFrameItem {
+  id           String     @id @default(cuid())
+  dailyFrameId String
+  postId       String
+  position     Int
+  rotation     Float
+  scale        Float
+  decoration   String?
+  dailyFrame   DailyFrame @relation(fields: [dailyFrameId], references: [id], onDelete: Cascade)
+  post         Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model MonthlyCollage {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  year             Int
+  month            Int
+  title            String
+  coverUrl         String?
+  renderedImageUrl String?
+  metadata         Json     @default("{}")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([userId, year, month])
+}
+
+model Yearbook {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  year      Int
+  title     String
+  coverUrl  String?
+  pdfUrl    String?
+  videoUrl  String?
+  metadata  Json           @default("{}")
+  status    YearbookStatus  @default(GENERATING)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([userId, year])
+}
+
+model ShareLink {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resourceType String
+  resourceId   String
+  slug         String    @unique
+  access       String
+  passwordHash String?
+  tokenHash    String    @unique
+  expiresAt    DateTime?
+  revokedAt    DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,58 @@
+services:
+  - type: web
+    name: frames-api
+    runtime: docker
+    dockerfilePath: services/api/Dockerfile
+    healthCheckPath: /health
+    preDeployCommand: pnpm --filter @frames/api prisma:migrate:deploy
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_REGION
+        sync: false
+      - key: AWS_BUCKET_NAME
+        sync: false
+      - key: CDN_URL
+        sync: false
+
+  - type: worker
+    name: frames-worker
+    runtime: docker
+    dockerfilePath: services/worker/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+
+  - type: web
+    name: frames-web
+    runtime: docker
+    dockerfilePath: apps/mobile/Dockerfile.web
+    envVars:
+      - key: EXPO_PUBLIC_API_URL
+        sync: false
+
+databases:
+  - name: frames-postgres
+    databaseName: frames
+    user: frames
+
+  - name: frames-redis
+    ipAllowList: []

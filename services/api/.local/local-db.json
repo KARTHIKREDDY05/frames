@@ -1,0 +1,82 @@
+{
+  "users": [
+    {
+      "id": "user_demo",
+      "username": "arjun",
+      "displayName": "Arjun Rao",
+      "email": "arjun@frames.local",
+      "passwordHash": "$2a$10$JM7Gm/shgZpaSwbhiONJnuTSwBKyuu7nXw2.KmChOHuMY68qdVvFS",
+      "avatarUrl": "https://i.pravatar.cc/160?u=arjun",
+      "bio": "Collecting ordinary magic.",
+      "defaultPrivacy": "FRIENDS",
+      "createdAt": "2026-08-17T16:43:10.537Z",
+      "updatedAt": "2026-08-17T16:43:10.537Z"
+    },
+    {
+      "id": "user_97e1a662-6980-4e0b-9b90-5691507ad071",
+      "username": "realtest1508245109",
+      "displayName": "Real Test User",
+      "email": "realtest1508245109@frames.local",
+      "passwordHash": "$2a$10$7MMXdq6Vo3Zsr62rgRP1x.aW2njhSuPmCsE/xvQTXAg1kQ7Ph6bXa",
+      "avatarUrl": "https://i.pravatar.cc/160?u=realtest1508245109%40frames.local",
+      "bio": "",
+      "defaultPrivacy": "FRIENDS",
+      "createdAt": "2026-08-17T16:43:10.625Z",
+      "updatedAt": "2026-08-17T16:43:10.625Z"
+    }
+  ],
+  "friendships": [],
+  "posts": [
+    {
+      "id": "post_430df323-0d17-4a51-ac1b-97b69affad9a",
+      "userId": "user_97e1a662-6980-4e0b-9b90-5691507ad071",
+      "mediaType": "IMAGE",
+      "mediaUrl": "https://picsum.photos/seed/realtime/900/1200",
+      "caption": "Testing Frames backend in real time",
+      "locationName": "Local Dev",
+      "privacy": "PUBLIC",
+      "frameStyle": "POLAROID",
+      "createdAt": "2026-08-17T16:43:10.744Z",
+      "expiresAt": "2026-08-17T16:43:10.855Z",
+      "archivedAt": "2026-08-17T16:43:10.855Z",
+      "deletedAt": null,
+      "reactions": [],
+      "comments": []
+    }
+  ],
+  "dailyFrames": [
+    {
+      "id": "daily_2ce76de3-b614-4c49-9979-27857207254c",
+      "userId": "user_97e1a662-6980-4e0b-9b90-5691507ad071",
+      "date": "2026-08-17",
+      "title": "August 17, 2026",
+      "subtitle": "A day worth remembering.",
+      "coverMediaUrl": "https://picsum.photos/seed/realtime/900/1200",
+      "renderedImageUrl": null,
+      "metadata": {
+        "template": "quiet-journal",
+        "postCount": 1
+      },
+      "postIds": [
+        "post_430df323-0d17-4a51-ac1b-97b69affad9a"
+      ],
+      "createdAt": "2026-08-17T16:43:10.878Z",
+      "updatedAt": "2026-08-17T16:43:10.878Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "notification_dbff10bc-2b29-449c-8d45-f0d817cd5172",
+      "userId": "user_97e1a662-6980-4e0b-9b90-5691507ad071",
+      "type": "daily_frame_ready",
+      "title": "Your daily Frame is ready",
+      "message": "A fresh memory card landed in your archive.",
+      "read": false,
+      "metadata": {
+        "dailyFrameId": "daily_2ce76de3-b614-4c49-9979-27857207254c"
+      },
+      "createdAt": "2026-08-17T16:43:10.878Z"
+    }
+  ],
+  "shareLinks": []
+}

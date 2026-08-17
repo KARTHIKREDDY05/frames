@@ -1,0 +1,21 @@
+{
+  "name": "frames",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.12.3",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @frames/api --filter @frames/worker --filter @frames/mobile dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "db:generate": "pnpm --filter @frames/api prisma:generate",
+    "db:migrate": "pnpm --filter @frames/api prisma:migrate",
+    "seed": "pnpm --filter @frames/api seed"
+  },
+  "devDependencies": {
+    "@frames/config": "workspace:*",
+    "eslint": "^9.9.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4"
+  }
+}
