@@ -1,8 +1,9 @@
 import http from "node:http";
 import { createReadStream, existsSync, statSync } from "node:fs";
-import { extname, join, resolve } from "node:path";
+import { dirname, extname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = resolve(".");
+const root = dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT ?? 8080);
 
 const types = {
@@ -23,4 +24,4 @@ http
     res.setHeader("Content-Type", types[extname(file)] ?? "application/octet-stream");
     createReadStream(file).pipe(res);
   })
-  .listen(port);
+  .listen(port, "0.0.0.0");
