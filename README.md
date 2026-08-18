@@ -60,6 +60,7 @@ This repo now includes deploy configs for real hosting:
 - `fly.toml`: Fly.io API service deploy starter.
 - `docs/SUPABASE.md`: active Supabase project and database setup.
 - `docs/ADMIN_AND_EXTERNAL_USER_VIEWS.md`: administrator versus external-user data access and storage flow.
+- `docs/MOBILE_APP_GUIDE.md`: how the mobile app is structured, what each folder does, and how to build shareable APKs before Play Store release.
 
 For a real launch, set these environment variables in the hosting provider:
 

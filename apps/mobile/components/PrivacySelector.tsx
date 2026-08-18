@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { palette } from "@frames/ui";
 import type { Privacy } from "@frames/types";
+import { AppIcon } from "./AppIcon";
 
 export function PrivacySelector({ value, onChange }: { value?: Privacy; onChange?: (privacy: Privacy) => void }) {
   const [localPrivacy, setLocalPrivacy] = useState<Privacy>("FRIENDS");
@@ -14,6 +15,7 @@ export function PrivacySelector({ value, onChange }: { value?: Privacy; onChange
     <View style={styles.row}>
       {(["FRIENDS", "PUBLIC"] as Privacy[]).map((item) => (
         <Pressable key={item} onPress={() => update(item)} style={[styles.option, privacy === item && styles.active]}>
+          <AppIcon name={item === "FRIENDS" ? "user-plus" : "public"} color={privacy === item ? palette.whitePaper : palette.ink} size={17} />
           <Text style={[styles.label, privacy === item && styles.activeLabel]}>{item === "FRIENDS" ? "Friends" : "Public"}</Text>
         </Pressable>
       ))}
@@ -23,7 +25,7 @@ export function PrivacySelector({ value, onChange }: { value?: Privacy; onChange
 
 const styles = StyleSheet.create({
   row: { flexDirection: "row", padding: 4, backgroundColor: palette.whitePaper, borderRadius: 8, borderWidth: 1, borderColor: "#E4D9CA" },
-  option: { flex: 1, minHeight: 44, alignItems: "center", justifyContent: "center", borderRadius: 6 },
+  option: { flex: 1, minHeight: 44, alignItems: "center", justifyContent: "center", borderRadius: 6, flexDirection: "row", gap: 6 },
   active: { backgroundColor: palette.ink },
   label: { color: palette.ink, fontWeight: "900" },
   activeLabel: { color: palette.whitePaper }

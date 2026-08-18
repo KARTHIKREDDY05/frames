@@ -11,13 +11,24 @@ Current official Expo guidance says Google Play submissions need a Google Play D
 - Version: `1.0.0`
 - Version code: `1`
 
-## Build
+## Preview APK
+
+Use this first when you want a downloadable Android app file to send to testers before official release.
 
 ```bash
 cd apps/mobile
-npm install --global eas-cli
 eas login
-eas build --platform android --profile production
+eas init
+pnpm build:apk
+```
+
+The preview profile creates an Android APK.
+
+## Production Build
+
+```bash
+cd apps/mobile
+pnpm build:aab
 ```
 
 The production profile creates an Android App Bundle.
@@ -49,10 +60,13 @@ The current `eas.json` submits to the internal testing track as a draft.
 
 ## Backend Requirement
 
-Before Play Store testing, deploy the API with PostgreSQL and Redis, then set:
+The current mobile build talks directly to Supabase for Auth, profile, search, and follow data:
 
 ```text
-EXPO_PUBLIC_API_URL=https://your-production-api.example.com
+EXPO_PUBLIC_SUPABASE_URL=https://fjhfmxpuyijwinvmqsch.supabase.co
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
 ```
 
-Do not ship Play Store builds with `LOCAL_JSON_DB=true` or placeholder API URLs.
+Do not ship Play Store builds with `LOCAL_JSON_DB=true`, placeholder API URLs, or disabled provider buttons shown as active OAuth options. Apple login is intentionally disabled for now; use Google/GitHub first.
+
+See [MOBILE_APP_GUIDE.md](./MOBILE_APP_GUIDE.md) for folder-by-folder guidance.

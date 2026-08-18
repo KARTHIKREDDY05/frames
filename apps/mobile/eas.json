@@ -1,7 +1,7 @@
 {
   "cli": {
     "version": ">= 12.0.0",
-    "appVersionSource": "remote"
+    "appVersionSource": "local"
   },
   "build": {
     "development": {
@@ -11,7 +11,9 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.frames.app"
+        "EXPO_PUBLIC_SUPABASE_URL": "https://fjhfmxpuyijwinvmqsch.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_hKlYOlHiS9ApC6y55NTPVg_oD9ZQWSs",
+        "EXPO_PUBLIC_ENABLED_OAUTH_PROVIDERS": "google"
       }
     },
     "preview": {
@@ -20,7 +22,9 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.frames.app"
+        "EXPO_PUBLIC_SUPABASE_URL": "https://fjhfmxpuyijwinvmqsch.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_hKlYOlHiS9ApC6y55NTPVg_oD9ZQWSs",
+        "EXPO_PUBLIC_ENABLED_OAUTH_PROVIDERS": "google"
       }
     },
     "production": {
@@ -29,7 +33,9 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.frames.app"
+        "EXPO_PUBLIC_SUPABASE_URL": "https://fjhfmxpuyijwinvmqsch.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_hKlYOlHiS9ApC6y55NTPVg_oD9ZQWSs",
+        "EXPO_PUBLIC_ENABLED_OAUTH_PROVIDERS": "google"
       }
     }
   },

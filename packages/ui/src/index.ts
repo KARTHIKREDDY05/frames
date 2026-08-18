@@ -18,4 +18,21 @@ export const spacing = {
   xl: 32
 } as const;
 
-export const frameStyles = ["POLAROID", "FILMSTRIP", "TORN_PAPER", "STICKER", "MINIMAL", "VINTAGE"] as const;
+export const frameStyles = [
+  "POLAROID",
+  "FILMSTRIP",
+  "TORN_PAPER",
+  "STICKER",
+  "MINIMAL",
+  "VINTAGE",
+  "INSTANT_CLASSIC",
+  "CONTACT_SHEET",
+  "NEGATIVE_STRIP",
+  "SLIDE_MOUNT",
+  "POSTCARD",
+  "NOTEBOOK",
+  "WASHI_COLLAGE",
+  "CINEMA",
+  "MAGAZINE",
+  "STAMP"
+] as const;

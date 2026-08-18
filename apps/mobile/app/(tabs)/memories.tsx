@@ -1,29 +1,58 @@
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import type { DailyFrameDto, PostDto } from "@frames/types";
 import { palette } from "@frames/ui";
 import { useAppStore } from "../../store/appStore";
+
+function makeDailyFrame(date: string, posts: PostDto[]): DailyFrameDto {
+  const title = new Date(`${date}T00:00:00`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  return {
+    id: `active-${date}`,
+    date,
+    title,
+    subtitle: "Active Frames from this day.",
+    coverMediaUrl: posts[0]?.mediaUrl,
+    renderedImageUrl: null,
+    metadata: { active: true },
+    posts
+  };
+}
 
 export default function MemoriesScreen() {
   const [mode, setMode] = useState<"monthly" | "yearly">("monthly");
   const dailyFrames = useAppStore((state) => state.dailyFrames);
-  const totalFrames = dailyFrames.reduce((sum, frame) => sum + frame.posts.length, 0);
+  const posts = useAppStore((state) => state.posts);
+  const currentUser = useAppStore((state) => state.currentUser);
+  const memoryFrames = useMemo(() => {
+    const ownPosts = posts.filter((post) => post.user.id === currentUser?.id);
+    const activeByDate = new Map<string, PostDto[]>();
+    ownPosts.forEach((post) => {
+      const date = post.createdAt.slice(0, 10);
+      activeByDate.set(date, [post, ...(activeByDate.get(date) ?? [])]);
+    });
+    const activeFrames = Array.from(activeByDate.entries()).map(([date, dayPosts]) => makeDailyFrame(date, dayPosts));
+    const archivedDates = new Set(dailyFrames.map((frame) => frame.date));
+    return [...dailyFrames, ...activeFrames.filter((frame) => !archivedDates.has(frame.date))]
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [currentUser?.id, dailyFrames, posts]);
+  const totalFrames = memoryFrames.reduce((sum, frame) => sum + frame.posts.length, 0);
   const monthly = useMemo(() => {
     const groups = new Map<string, number>();
-    dailyFrames.forEach((frame) => {
+    memoryFrames.forEach((frame) => {
       const date = new Date(`${frame.date}T00:00:00`);
       const label = date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
       groups.set(label, (groups.get(label) ?? 0) + frame.posts.length);
     });
     return Array.from(groups.entries()).map(([label, count]) => ({ label, count }));
-  }, [dailyFrames]);
+  }, [memoryFrames]);
   const yearly = useMemo(() => {
     const groups = new Map<string, number>();
-    dailyFrames.forEach((frame) => {
+    memoryFrames.forEach((frame) => {
       const label = frame.date.slice(0, 4);
       groups.set(label, (groups.get(label) ?? 0) + frame.posts.length);
     });
     return Array.from(groups.entries()).map(([label, count]) => ({ label, count }));
-  }, [dailyFrames]);
+  }, [memoryFrames]);
   const items = mode === "monthly" ? monthly : yearly;
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -32,15 +61,15 @@ export default function MemoriesScreen() {
         <Pressable onPress={() => setMode("monthly")} style={[styles.tabButton, mode === "monthly" && styles.activeButton]}><Text style={[styles.tabText, mode === "monthly" && styles.activeText]}>Monthly</Text></Pressable>
         <Pressable onPress={() => setMode("yearly")} style={[styles.tabButton, mode === "yearly" && styles.activeButton]}><Text style={[styles.tabText, mode === "yearly" && styles.activeText]}>Yearly</Text></Pressable>
       </View>
-      {dailyFrames.length === 0 ? (
+      {memoryFrames.length === 0 ? (
         <View style={styles.emptyCard}>
-          <Text style={styles.emptyTitle}>No generated memories yet.</Text>
-          <Text style={styles.emptyCopy}>Post a Frame, then use the archive simulation or wait for the backend worker to generate memory cards.</Text>
+          <Text style={styles.emptyTitle}>No memories yet.</Text>
+          <Text style={styles.emptyCopy}>Capture or upload a Frame and your monthly and yearly memories will start building here.</Text>
         </View>
       ) : (
         <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>Current Memories</Text>
-          <Text style={styles.summaryStat}>{dailyFrames.length} Daily Cards</Text>
+          <Text style={styles.summaryStat}>{memoryFrames.length} Days Framed</Text>
           <Text style={styles.summaryStat}>{totalFrames} Archived Frames</Text>
         </View>
       )}

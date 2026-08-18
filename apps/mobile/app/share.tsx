@@ -21,8 +21,8 @@ export default function ShareLinkModal() {
     <View style={styles.container}>
       <Text style={styles.title}>Share Link</Text>
       <Text style={styles.copy}>{latest ?? "No link created yet."}</Text>
-      <FrameButton label="Create Public Link" onPress={() => { void makeLink("PUBLIC"); }} />
-      <FrameButton label="Friends Only" variant="secondary" onPress={() => { void makeLink("FRIENDS"); }} />
+      <FrameButton icon="send" label="Create Public Link" onPress={() => { void makeLink("PUBLIC"); }} />
+      <FrameButton icon="user-plus" label="Friends Only" variant="secondary" onPress={() => { void makeLink("FRIENDS"); }} />
       <Text style={styles.section}>Recent Links</Text>
       {links.slice(0, 4).map((link) => <Text key={link.id} style={styles.link}>{link.access}: {link.url}</Text>)}
     </View>

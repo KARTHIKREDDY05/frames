@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#F6F0E7"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "plugins": [
       "expo-router",
       "expo-secure-store",
@@ -27,14 +29,33 @@
         {
           "photosPermission": "Frames uses your photo library so you can choose existing photos and videos for your frame."
         }
+      ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Frames uses your contacts so you can find friends and invite people to download the app."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Frames uses your location to attach a capture place to your Frame when you allow it."
+        }
       ]
     ],
-    "owner": "frames",
+    "owner": "taehabeom",
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
       "fallbackToCacheTimeout": 0
+    },
+    "web": {
+      "name": "Frames",
+      "shortName": "Frames",
+      "themeColor": "#F6F0E7",
+      "backgroundColor": "#F6F0E7",
+      "description": "Frames is a social scrapbook app for capturing daily moments, following friends, and turning posts into memories."
     },
     "ios": {
       "supportsTablet": true,
@@ -44,13 +65,15 @@
       "package": "app.frames.mobile",
       "versionCode": 1,
       "permissions": [
-        "CAMERA",
-        "RECORD_AUDIO",
-        "READ_MEDIA_IMAGES",
-        "READ_MEDIA_VIDEO",
-        "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION",
-        "POST_NOTIFICATIONS"
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -59,8 +82,11 @@
       "playStoreUrl": "https://play.google.com/store/apps/details?id=app.frames.mobile"
     },
     "extra": {
+      "router": {
+        "origin": false
+      },
       "eas": {
-        "projectId": "00000000-0000-0000-0000-000000000000"
+        "projectId": "ab4bf3f3-1c17-4513-8943-7afc5ec68d18"
       }
     }
   }

@@ -1,9 +1,43 @@
 export type Privacy = "PUBLIC" | "FRIENDS";
 export type MediaType = "IMAGE" | "VIDEO";
-export type FrameStyle = "POLAROID" | "FILMSTRIP" | "TORN_PAPER" | "STICKER" | "MINIMAL" | "VINTAGE";
+export type FrameStyle =
+  | "POLAROID"
+  | "FILMSTRIP"
+  | "TORN_PAPER"
+  | "STICKER"
+  | "MINIMAL"
+  | "VINTAGE"
+  | "INSTANT_CLASSIC"
+  | "CONTACT_SHEET"
+  | "NEGATIVE_STRIP"
+  | "SLIDE_MOUNT"
+  | "POSTCARD"
+  | "NOTEBOOK"
+  | "WASHI_COLLAGE"
+  | "CINEMA"
+  | "MAGAZINE"
+  | "STAMP";
 export type FriendshipStatus = "PENDING" | "ACCEPTED" | "BLOCKED";
 export type YearbookStatus = "GENERATING" | "READY" | "FAILED";
 export type UserRole = "USER" | "ADMIN";
+export type ProfileVisibility = "PUBLIC" | "PRIVATE";
+export type PhotoFilter =
+  | "ORIGINAL"
+  | "WARM"
+  | "COOL"
+  | "MONO"
+  | "FADE"
+  | "PUNCH"
+  | "DREAMY"
+  | "NOIR"
+  | "CHROME"
+  | "BLUSH"
+  | "TEAL"
+  | "GOLD"
+  | "DRAMA"
+  | "SOFT"
+  | "GRAIN"
+  | "SUNSET";
 
 export interface UserDto {
   id: string;
@@ -13,6 +47,9 @@ export interface UserDto {
   avatarUrl?: string | null;
   bio?: string | null;
   defaultPrivacy: Privacy;
+  profileVisibility?: ProfileVisibility;
+  usernameUpdatedAt?: string | null;
+  lastSeenAt?: string | null;
   role?: UserRole;
 }
 
@@ -24,8 +61,12 @@ export interface PostDto {
   thumbnailUrl?: string | null;
   caption?: string | null;
   locationName?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   privacy: Privacy;
   frameStyle: FrameStyle;
+  filterPreset?: PhotoFilter;
+  profileFeatured?: boolean;
   createdAt: string;
   expiresAt: string;
   reactionCount: number;
