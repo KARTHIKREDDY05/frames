@@ -1,13 +1,13 @@
 import { Link, router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, FlatList, Image, Modal, Platform, Pressable, Share, StyleSheet, Text, View } from "react-native";
-import type { PostDto } from "@frames/types";
+import type { PostDto, UserDto } from "@frames/types";
 import { palette } from "@frames/ui";
 import { DateStamp } from "./DateStamp";
 import { PolaroidFrame } from "./PolaroidFrame";
 import { ReactionButton } from "./ReactionButton";
 import { UserHeader } from "./UserHeader";
-import { deleteRemotePost, sendRemoteChatMessage, setRemotePostProfileFeatured, toggleRemoteReaction, updateRemotePostPrivacy } from "../services/supabase";
+import { deleteRemotePost, fetchFollowingList, fetchFriendsList, sendRemoteChatMessage, setRemotePostProfileFeatured, toggleRemoteReaction, updateRemotePostPrivacy } from "../services/supabase";
 import { useAppStore } from "../store/appStore";
 import { AppIcon } from "./AppIcon";
 
@@ -17,7 +17,8 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
   const mergePosts = useAppStore((state) => state.mergePosts);
   const sendChatMessage = useAppStore((state) => state.sendChatMessage);
   const currentUser = useAppStore((state) => state.currentUser);
-  const friends = useAppStore((state) => state.friends);
+  const storeFriends = useAppStore((state) => state.friends);
+  const setStoreFriends = useAppStore((state) => state.setFriends);
   const liked = useAppStore((state) => state.likedPostIds.includes(post.id));
   const ownsPost = currentUser?.id === post.user.id || (!currentUser && post.user.id === "user-guest");
   const capturedLabel = formatCapturedAt(post.createdAt);
@@ -25,7 +26,26 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
 
   const [optionsVisible, setOptionsVisible] = useState(false);
   const [forwardVisible, setForwardVisible] = useState(false);
+  const [friendsList, setFriendsList] = useState<UserDto[]>(storeFriends);
   const [sentMap, setSentMap] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (forwardVisible && currentUser) {
+      void fetchFriendsList(currentUser.id).then(({ users }) => {
+        if (users && users.length > 0) {
+          setFriendsList(users);
+          setStoreFriends(users);
+        } else {
+          void fetchFollowingList(currentUser.id).then(({ users: following }) => {
+            if (following && following.length > 0) {
+              setFriendsList(following);
+              setStoreFriends(following);
+            }
+          });
+        }
+      });
+    }
+  }, [currentUser, forwardVisible, setStoreFriends]);
 
   const react = () => {
     reactToPost(post.id);
@@ -134,8 +154,9 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
       <Link href={`/post/${post.id}`} style={styles.detail}>Open Frame ›</Link>
 
       {/* Frame Options Modal (Long Press / ...) */}
-      <Modal visible={optionsVisible} transparent animationType="slide">
-        <Pressable style={styles.modalOverlay} onPress={() => setOptionsVisible(false)}>
+      <Modal visible={optionsVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setOptionsVisible(false)} />
           <View style={styles.actionSheet}>
             <View style={styles.sheetHandle} />
             <Text style={styles.sheetTitle}>Frame Settings</Text>
@@ -184,24 +205,25 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
               <Text style={styles.sheetCancelText}>Cancel</Text>
             </Pressable>
           </View>
-        </Pressable>
+        </View>
       </Modal>
 
       {/* Forward / Share Sheet */}
-      <Modal visible={forwardVisible} transparent animationType="slide">
-        <Pressable style={styles.modalOverlay} onPress={() => setForwardVisible(false)}>
+      <Modal visible={forwardVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setForwardVisible(false)} />
           <View style={styles.actionSheet}>
             <View style={styles.sheetHandle} />
             <Text style={styles.sheetTitle}>Forward to Friends</Text>
 
-            {friends.length === 0 ? (
+            {friendsList.length === 0 ? (
               <View style={styles.noFriends}>
-                <Text style={styles.noFriendsText}>No friends added yet.</Text>
-                <Text style={styles.noFriendsCopy}>Find friends in Search to forward Frames directly into chats.</Text>
+                <Text style={styles.noFriendsText}>No connections yet.</Text>
+                <Text style={styles.noFriendsCopy}>Follow people in the Search tab to forward Frames directly into chats.</Text>
               </View>
             ) : (
               <FlatList
-                data={friends}
+                data={friendsList}
                 keyExtractor={(item) => item.id}
                 style={{ maxHeight: 240, marginVertical: 8 }}
                 renderItem={({ item }) => {
@@ -239,7 +261,7 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
               <Text style={styles.sheetCancelText}>Close</Text>
             </Pressable>
           </View>
-        </Pressable>
+        </View>
       </Modal>
     </Pressable>
   );

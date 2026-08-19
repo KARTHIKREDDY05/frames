@@ -83,9 +83,9 @@ export default function ProfileScreen() {
             <Text style={styles.statNumber}>{gridPosts.length}</Text>
             <Text style={styles.statLabel}>Frames</Text>
           </View>
-          <Pressable style={styles.statBox} onPress={() => { void openList("friends"); }}>
-            <Text style={styles.statNumber}>{stats.friends}</Text>
-            <Text style={styles.statLabelClickable}>Friends ›</Text>
+          <Pressable style={styles.statBox} onPress={() => { void openList("followers"); }}>
+            <Text style={styles.statNumber}>{stats.followers}</Text>
+            <Text style={styles.statLabelClickable}>Followers ›</Text>
           </Pressable>
           <Pressable style={styles.statBox} onPress={() => { void openList("following"); }}>
             <Text style={styles.statNumber}>{stats.following}</Text>
@@ -161,10 +161,11 @@ export default function ProfileScreen() {
       {/* Relations Modal */}
       <Modal visible={Boolean(activeModal)} animationType="slide" transparent>
         <View style={styles.modalBackdrop}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setActiveModal(null)} />
           <View style={styles.modalSheet}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {activeModal === "friends" ? "Friends" : activeModal === "followers" ? "Followers" : "Following"}
+                {activeModal === "followers" ? "Followers" : "Following"}
               </Text>
               <Pressable onPress={() => setActiveModal(null)} style={styles.modalClose}>
                 <Text style={styles.modalCloseText}>✕</Text>
@@ -172,7 +173,7 @@ export default function ProfileScreen() {
             </View>
 
             <View style={styles.modalTabs}>
-              {(["friends", "following", "followers"] as const).map((tab) => (
+              {(["followers", "following"] as const).map((tab) => (
                 <Pressable
                   key={tab}
                   onPress={() => { void openList(tab); }}

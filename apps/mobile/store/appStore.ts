@@ -84,6 +84,7 @@ interface AppState {
   setCurrentUser: (user: UserDto | null) => void;
   setAuthChecked: (checked: boolean) => void;
   setPosts: (posts: PostDto[]) => void;
+  setFriends: (friends: UserDto[]) => void;
   mergePosts: (posts: PostDto[]) => void;
   mergeChatMessages: (messages: ChatMessage[]) => void;
   mergeNotifications: (notifications: UserNotification[]) => void;
@@ -155,6 +156,7 @@ export const useAppStore = create<AppState>()(
       setCurrentUser: (user) => set({ currentUser: user }),
       setAuthChecked: (checked) => set({ authChecked: checked }),
       setPosts: (posts) => set({ posts }),
+      setFriends: (friends) => set({ friends }),
       mergePosts: (posts) => set((state) => {
         const byId = new Map<string, PostDto>();
         [...posts, ...state.posts].forEach((post) => byId.set(post.id, post));
