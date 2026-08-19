@@ -19,9 +19,16 @@ export default function PublicFeed() {
     };
     void load();
   }, [mergePosts]);
-  const publicPosts = useMemo(() => posts
-    .filter((post) => (post.privacy === "PUBLIC" || post.user.id === currentUser?.id) && isActiveFrame(post.expiresAt))
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()), [currentUser?.id, posts]);
+  const publicPosts = useMemo(() => {
+    return posts
+      .filter((post) => {
+        if (post.user.id === currentUser?.id && currentUser?.profileVisibility === "PRIVATE") {
+          return false;
+        }
+        return post.privacy === "PUBLIC" && isActiveFrame(post.expiresAt);
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [currentUser?.id, currentUser?.profileVisibility, posts]);
 
   return (
     <PaperBackground>

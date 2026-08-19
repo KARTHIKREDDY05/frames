@@ -1,18 +1,22 @@
 import { Link } from "expo-router";
-import { useMemo } from "react";
-import { Image, Pressable, SectionList, StyleSheet, Text, View } from "react-native";
+import { useMemo, useState } from "react";
+import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import type { DailyFrameDto, PostDto } from "@frames/types";
 import { palette } from "@frames/ui";
+import { AppIcon } from "../../components/AppIcon";
 import { PaperBackground } from "../../components/PaperBackground";
 import { useAppStore } from "../../store/appStore";
 
 function makeDailyFrame(date: string, posts: PostDto[]): DailyFrameDto {
-  const title = new Date(`${date}T00:00:00`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  const parsedDate = new Date(`${date}T00:00:00`);
+  const title = Number.isNaN(parsedDate.getTime())
+    ? date
+    : parsedDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
   return {
     id: `active-${date}`,
     date,
     title,
-    subtitle: "Active Frames from this day.",
+    subtitle: `${posts.length} captured moment${posts.length === 1 ? "" : "s"}`,
     coverMediaUrl: posts[0]?.mediaUrl,
     renderedImageUrl: null,
     metadata: { active: true },
@@ -24,6 +28,8 @@ export default function ArchiveTimeline() {
   const dailyFrames = useAppStore((state) => state.dailyFrames);
   const posts = useAppStore((state) => state.posts);
   const currentUser = useAppStore((state) => state.currentUser);
+  const [filter, setFilter] = useState<"all" | "pinned" | "month">("all");
+
   const archiveFrames = useMemo(() => {
     const ownPosts = posts.filter((post) => post.user.id === currentUser?.id);
     const activeByDate = new Map<string, PostDto[]>();
@@ -36,47 +42,125 @@ export default function ArchiveTimeline() {
     return [...dailyFrames, ...activeFrames.filter((frame) => !archivedDates.has(frame.date))]
       .sort((a, b) => b.date.localeCompare(a.date));
   }, [currentUser?.id, dailyFrames, posts]);
-  const sections = useMemo(() => {
-    const grouped = new Map<string, DailyFrameDto[]>();
-    archiveFrames.forEach((frame) => {
-      const section = new Date(`${frame.date}T00:00:00`).toLocaleDateString("en-US", { month: "long", year: "numeric" }).toUpperCase();
-      grouped.set(section, [...(grouped.get(section) ?? []), frame]);
-    });
-    return Array.from(grouped.entries()).map(([title, data]) => ({ title, data }));
-  }, [archiveFrames]);
+
+  const totalFramesCount = useMemo(() => {
+    const ownPosts = posts.filter((post) => post.user.id === currentUser?.id);
+    return ownPosts.length;
+  }, [currentUser?.id, posts]);
+
+  const pinnedCount = useMemo(() => {
+    return posts.filter((post) => post.user.id === currentUser?.id && post.profileFeatured).length;
+  }, [currentUser?.id, posts]);
+
+  const filteredFrames = useMemo(() => {
+    const currentYearMonth = new Date().toISOString().slice(0, 7);
+    if (filter === "pinned") {
+      return archiveFrames.filter((frame) => frame.posts.some((p) => p.profileFeatured));
+    }
+    if (filter === "month") {
+      return archiveFrames.filter((frame) => frame.date.startsWith(currentYearMonth));
+    }
+    return archiveFrames;
+  }, [archiveFrames, filter]);
 
   return (
     <PaperBackground>
-      <SectionList
+      <FlatList
         contentContainerStyle={styles.content}
-        sections={sections}
+        data={filteredFrames}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={
-          <View style={styles.hero}>
-            <Text style={styles.kicker}>SCRAPBOOK</Text>
-            <Text style={styles.title}>Archive</Text>
-            <Text style={styles.copy}>{archiveFrames.length} saved day{archiveFrames.length === 1 ? "" : "s"} from your Frames.</Text>
+          <View style={styles.header}>
+            <View style={styles.hero}>
+              <Text style={styles.kicker}>MEMORY TIMELINE</Text>
+              <Text style={styles.title}>Scrapbook Archive</Text>
+              <Text style={styles.copy}>Every day you capture becomes an automatic memory page.</Text>
+            </View>
+
+            {/* Stat Counters */}
+            <View style={styles.statsRow}>
+              <View style={styles.statCard}>
+                <Text style={styles.statNumber}>{archiveFrames.length}</Text>
+                <Text style={styles.statLabel}>Days Logged</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={styles.statNumber}>{totalFramesCount}</Text>
+                <Text style={styles.statLabel}>Total Frames</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={styles.statNumber}>{pinnedCount}</Text>
+                <Text style={styles.statLabel}>Pinned ★</Text>
+              </View>
+            </View>
+
+            {/* Filter Tabs */}
+            <View style={styles.filterStrip}>
+              <Pressable
+                style={[styles.filterTab, filter === "all" && styles.filterTabActive]}
+                onPress={() => setFilter("all")}
+              >
+                <Text style={[styles.filterText, filter === "all" && styles.filterTextActive]}>All Days ({archiveFrames.length})</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.filterTab, filter === "pinned" && styles.filterTabActive]}
+                onPress={() => setFilter("pinned")}
+              >
+                <Text style={[styles.filterText, filter === "pinned" && styles.filterTextActive]}>★ Pinned</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.filterTab, filter === "month" && styles.filterTabActive]}
+                onPress={() => setFilter("month")}
+              >
+                <Text style={[styles.filterText, filter === "month" && styles.filterTextActive]}>This Month</Text>
+              </Pressable>
+            </View>
           </View>
         }
         ListEmptyComponent={
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>No Frames in your archive yet.</Text>
-            <Text style={styles.emptyCopy}>Capture or upload a Frame and it will appear here immediately.</Text>
+            <AppIcon name="archive" color={palette.mutedBrown} size={36} />
+            <Text style={styles.emptyTitle}>No archive moments yet.</Text>
+            <Text style={styles.emptyCopy}>Capture a photo in the Camera tab and your daily scrapbook page will appear here automatically.</Text>
+            <Link href="/(tabs)/camera" asChild>
+              <View style={styles.emptyCta}>
+                <Text style={styles.emptyCtaText}>Open Camera ›</Text>
+              </View>
+            </Link>
           </View>
         }
-        renderSectionHeader={({ section }) => <Text style={styles.section}>{section.title}</Text>}
         renderItem={({ item }) => (
           <Link href={`/daily/${item.date}`} asChild>
-            <Pressable style={styles.row}>
-              <View style={styles.thumbStack}>
-                {item.posts.slice(0, 3).map((post, index) => <Image key={post.id} source={{ uri: post.mediaUrl }} style={[styles.thumb, index === 1 && styles.thumbTwo, index === 2 && styles.thumbThree]} />)}
+            <Pressable style={styles.card}>
+              <View style={styles.cardTop}>
+                <View style={styles.dateBadge}>
+                  <Text style={styles.dateMonth}>{formatMonth(item.date)}</Text>
+                  <Text style={styles.dateDay}>{formatDay(item.date)}</Text>
+                </View>
+
+                <View style={styles.cardInfo}>
+                  <Text numberOfLines={1} style={styles.cardTitle}>{item.title}</Text>
+                  <Text style={styles.cardSubtitle}>{item.subtitle} • Latest {formatLatestTime(item.posts)}</Text>
+                </View>
+
+                <Text style={styles.chevron}>›</Text>
               </View>
-              <View style={styles.rowMeta}>
-                <Text style={styles.day}>{new Date(`${item.date}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</Text>
-                <Text style={styles.weekday}>{item.subtitle}</Text>
-                <Text style={styles.count}>{item.posts.length} Frames - latest {formatLatestTime(item.posts)}</Text>
+
+              {/* Photo Collage Strip */}
+              <View style={styles.collageRow}>
+                {item.posts.slice(0, 4).map((post, idx) => (
+                  <View key={post.id} style={styles.thumbWrap}>
+                    <Image source={{ uri: post.mediaUrl }} style={styles.thumbImage} />
+                    {post.profileFeatured ? (
+                      <View style={styles.pinnedBadge}><Text style={styles.pinnedBadgeText}>★</Text></View>
+                    ) : null}
+                    {idx === 3 && item.posts.length > 4 ? (
+                      <View style={styles.moreOverlay}>
+                        <Text style={styles.moreText}>+{item.posts.length - 3}</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                ))}
               </View>
-              <Text style={styles.chevron}>›</Text>
             </Pressable>
           </Link>
         )}
@@ -85,32 +169,61 @@ export default function ArchiveTimeline() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: { padding: 18, paddingTop: 34, paddingBottom: 110 },
-  hero: { backgroundColor: palette.ink, borderRadius: 8, padding: 18, gap: 6, marginBottom: 8 },
-  kicker: { color: palette.sunshine, fontSize: 12, fontWeight: "900" },
-  title: { color: palette.whitePaper, fontSize: 34, fontWeight: "900" },
-  copy: { color: "#D8CFC7", lineHeight: 22, fontWeight: "700" },
-  section: { fontSize: 15, color: palette.mutedBrown, fontWeight: "900", marginVertical: 18 },
-  row: { minHeight: 118, padding: 12, marginBottom: 10, backgroundColor: palette.whitePaper, borderRadius: 8, borderWidth: 1, borderColor: "#E4D9CA", flexDirection: "row", alignItems: "center", gap: 14 },
-  thumbStack: { width: 88, height: 88, position: "relative" },
-  thumb: { position: "absolute", left: 0, top: 0, width: 70, height: 70, borderRadius: 8, backgroundColor: "#E4D9CA", borderWidth: 3, borderColor: palette.whitePaper },
-  thumbTwo: { left: 12, top: 10, transform: [{ rotate: "4deg" }] },
-  thumbThree: { left: 24, top: 18, transform: [{ rotate: "-4deg" }] },
-  rowMeta: { flex: 1 },
-  day: { fontSize: 24, color: palette.ink, fontWeight: "900" },
-  weekday: { color: palette.mutedBrown, marginTop: 4 },
-  count: { color: palette.ink, fontWeight: "800", marginTop: 8 },
-  chevron: { color: palette.mutedBrown, fontSize: 30, fontWeight: "300" },
-  emptyCard: { backgroundColor: palette.whitePaper, borderRadius: 8, borderWidth: 1, borderColor: "#E4D9CA", marginTop: 90, padding: 18, gap: 8 },
-  emptyTitle: { color: palette.ink, fontSize: 24, fontWeight: "900" },
-  emptyCopy: { color: palette.mutedBrown, fontSize: 16, lineHeight: 23 }
-});
+function formatMonth(dateStr: string) {
+  const d = new Date(`${dateStr}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return "DAY";
+  return d.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+}
+
+function formatDay(dateStr: string) {
+  const d = new Date(`${dateStr}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return dateStr.slice(-2);
+  return String(d.getDate());
+}
 
 function formatLatestTime(posts: PostDto[]) {
   const latest = [...posts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-  if (!latest) return "none";
+  if (!latest) return "today";
   const date = new Date(latest.createdAt);
-  if (Number.isNaN(date.getTime())) return "unknown";
+  if (Number.isNaN(date.getTime())) return "today";
   return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
+
+const styles = StyleSheet.create({
+  content: { padding: 18, paddingTop: 34, paddingBottom: 120, gap: 12 },
+  header: { gap: 14, marginBottom: 6 },
+  hero: { backgroundColor: palette.ink, borderRadius: 14, padding: 20, gap: 6 },
+  kicker: { color: palette.sunshine, fontSize: 11, fontWeight: "900", letterSpacing: 1 },
+  title: { color: palette.whitePaper, fontSize: 30, fontWeight: "900" },
+  copy: { color: "#D8CFC7", lineHeight: 20, fontWeight: "700", fontSize: 14 },
+  statsRow: { flexDirection: "row", gap: 10 },
+  statCard: { flex: 1, backgroundColor: palette.whitePaper, borderRadius: 12, borderWidth: 1, borderColor: "#E4D9CA", padding: 12, alignItems: "center" },
+  statNumber: { fontSize: 20, fontWeight: "900", color: palette.ink },
+  statLabel: { fontSize: 11, fontWeight: "800", color: palette.mutedBrown, marginTop: 2 },
+  filterStrip: { flexDirection: "row", gap: 8 },
+  filterTab: { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 10, backgroundColor: palette.whitePaper, borderWidth: 1, borderColor: "#E4D9CA" },
+  filterTabActive: { backgroundColor: palette.ink, borderColor: palette.ink },
+  filterText: { fontSize: 12, fontWeight: "800", color: palette.mutedBrown },
+  filterTextActive: { color: palette.whitePaper },
+  card: { backgroundColor: palette.whitePaper, borderRadius: 14, borderWidth: 1, borderColor: "#E4D9CA", padding: 14, gap: 12 },
+  cardTop: { flexDirection: "row", alignItems: "center", gap: 12 },
+  dateBadge: { width: 48, height: 48, borderRadius: 10, backgroundColor: palette.ink, alignItems: "center", justifyContent: "center" },
+  dateMonth: { fontSize: 10, fontWeight: "900", color: palette.sunshine },
+  dateDay: { fontSize: 18, fontWeight: "900", color: palette.whitePaper, marginTop: -2 },
+  cardInfo: { flex: 1, gap: 2 },
+  cardTitle: { fontSize: 16, fontWeight: "900", color: palette.ink },
+  cardSubtitle: { fontSize: 12, color: palette.mutedBrown, fontWeight: "700" },
+  chevron: { color: palette.mutedBrown, fontSize: 26, fontWeight: "300" },
+  collageRow: { flexDirection: "row", gap: 8 },
+  thumbWrap: { flex: 1, aspectRatio: 1, borderRadius: 8, overflow: "hidden", backgroundColor: "#E4D9CA", position: "relative" },
+  thumbImage: { width: "100%", height: "100%" },
+  pinnedBadge: { position: "absolute", top: 4, left: 4, backgroundColor: palette.ink, width: 18, height: 18, borderRadius: 9, alignItems: "center", justifyContent: "center" },
+  pinnedBadgeText: { color: palette.sunshine, fontSize: 10, fontWeight: "900" },
+  moreOverlay: { position: "absolute", inset: 0, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" },
+  moreText: { color: palette.whitePaper, fontSize: 14, fontWeight: "900" },
+  emptyCard: { backgroundColor: palette.whitePaper, borderRadius: 14, borderWidth: 1, borderColor: "#E4D9CA", marginTop: 40, padding: 28, alignItems: "center", gap: 10 },
+  emptyTitle: { color: palette.ink, fontSize: 20, fontWeight: "900" },
+  emptyCopy: { color: palette.mutedBrown, fontSize: 14, lineHeight: 20, textAlign: "center" },
+  emptyCta: { marginTop: 6, backgroundColor: palette.ink, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 18 },
+  emptyCtaText: { color: palette.whitePaper, fontWeight: "900", fontSize: 14 }
+});

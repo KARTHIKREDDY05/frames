@@ -185,9 +185,6 @@ export default function CameraScreen() {
 
       <View style={styles.bottomBar}>
         <View style={styles.modeStrip}>
-          <Pressable onPress={() => setActiveMode("live")}>
-            <Text style={[styles.modeText, activeMode === "live" && styles.modeActive]}>Live</Text>
-          </Pressable>
           <Pressable onPress={() => setActiveMode("photo")}>
             <Text style={[styles.modeText, activeMode === "photo" && styles.modeActive]}>Photo</Text>
           </Pressable>

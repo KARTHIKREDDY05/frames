@@ -1,12 +1,13 @@
 import { Link, router } from "expo-router";
-import { Alert, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { Alert, FlatList, Image, Modal, Platform, Pressable, Share, StyleSheet, Text, View } from "react-native";
 import type { PostDto } from "@frames/types";
 import { palette } from "@frames/ui";
 import { DateStamp } from "./DateStamp";
 import { PolaroidFrame } from "./PolaroidFrame";
 import { ReactionButton } from "./ReactionButton";
 import { UserHeader } from "./UserHeader";
-import { deleteRemotePost, setRemotePostProfileFeatured, toggleRemoteReaction } from "../services/supabase";
+import { deleteRemotePost, sendRemoteChatMessage, setRemotePostProfileFeatured, toggleRemoteReaction, updateRemotePostPrivacy } from "../services/supabase";
 import { useAppStore } from "../store/appStore";
 import { AppIcon } from "./AppIcon";
 
@@ -14,67 +15,207 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
   const reactToPost = useAppStore((state) => state.reactToPost);
   const deletePost = useAppStore((state) => state.deletePost);
   const mergePosts = useAppStore((state) => state.mergePosts);
+  const sendChatMessage = useAppStore((state) => state.sendChatMessage);
   const currentUser = useAppStore((state) => state.currentUser);
+  const friends = useAppStore((state) => state.friends);
   const liked = useAppStore((state) => state.likedPostIds.includes(post.id));
   const ownsPost = currentUser?.id === post.user.id || (!currentUser && post.user.id === "user-guest");
   const capturedLabel = formatCapturedAt(post.createdAt);
   const lifeLabel = formatFrameLife(post.expiresAt, post.profileFeatured);
+
+  const [optionsVisible, setOptionsVisible] = useState(false);
+  const [forwardVisible, setForwardVisible] = useState(false);
+  const [sentMap, setSentMap] = useState<Record<string, boolean>>({});
+
   const react = () => {
     reactToPost(post.id);
     void toggleRemoteReaction(post, liked);
   };
-  const toggleFeatured = () => {
+
+  const toggleFeatured = async () => {
     const next = !post.profileFeatured;
     mergePosts([{ ...post, profileFeatured: next }]);
-    void setRemotePostProfileFeatured(post.id, next).then(({ post: updated }) => {
-      if (updated) mergePosts([updated]);
-    });
+    setOptionsVisible(false);
+    const { post: updated } = await setRemotePostProfileFeatured(post.id, next);
+    if (updated) mergePosts([updated]);
   };
+
+  const togglePrivacy = async () => {
+    const nextPrivacy = post.privacy === "PUBLIC" ? "FRIENDS" : "PUBLIC";
+    mergePosts([{ ...post, privacy: nextPrivacy }]);
+    setOptionsVisible(false);
+    const { post: updated } = await updateRemotePostPrivacy(post.id, nextPrivacy);
+    if (updated) mergePosts([updated]);
+  };
+
   const confirmDelete = () => {
+    setOptionsVisible(false);
     const remove = () => {
       deletePost(post.id);
       void deleteRemotePost(post.id);
     };
+
     if (Platform.OS === "web") {
       if (typeof window !== "undefined" && window.confirm("Delete this Frame? This cannot be undone.")) remove();
       return;
     }
-    Alert.alert("Delete Frame?", "This cannot be undone.", [
+
+    Alert.alert("Delete Frame?", "This Frame will be permanently removed from your feed, profile, and archive.", [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: remove }
     ]);
   };
+
+  const forwardToFriend = (friendId: string, friendName: string) => {
+    const shareText = `Check out this Frame: https://frames-test-build.vercel.app/post/${post.id}`;
+    void sendRemoteChatMessage(friendId, shareText);
+    sendChatMessage(friendId, shareText);
+    setSentMap((prev) => ({ ...prev, [friendId]: true }));
+  };
+
+  const shareExternal = async () => {
+    setForwardVisible(false);
+    const url = `https://frames-test-build.vercel.app/post/${post.id}`;
+    try {
+      await Share.share({
+        title: "Check out this Frame!",
+        message: `Check out this Frame on Frames: ${url}`,
+        url
+      });
+    } catch {
+      // Ignored
+    }
+  };
+
   return (
-    <View style={[styles.wrap, { transform: [{ rotate: tilt }] }]}>
+    <Pressable onLongPress={() => ownsPost && setOptionsVisible(true)} style={[styles.wrap, { transform: [{ rotate: tilt }] }]}>
       <View style={styles.headerRow}>
-        <UserHeader user={post.user} meta={`${capturedLabel} - ${post.locationName ?? "No location"}`} />
-        {ownsPost ? <Pressable accessibilityLabel="Delete Frame" style={styles.deleteButton} onPress={confirmDelete}><AppIcon name="delete" color="#9B2C2C" size={22} /></Pressable> : null}
+        <UserHeader user={post.user} meta={`${capturedLabel} • ${post.locationName ?? "No location"}`} />
+        <View style={styles.headerRight}>
+          {ownsPost ? (
+            <Pressable accessibilityLabel="Frame options" style={styles.iconBtn} onPress={() => setOptionsVisible(true)}>
+              <AppIcon name="settings" color={palette.ink} size={18} />
+            </Pressable>
+          ) : null}
+        </View>
       </View>
+
       <View style={styles.timeRow}>
         <Text style={styles.timePill}>{lifeLabel}</Text>
         {post.profileFeatured ? <Text style={styles.timePillPinned}>★ Pinned on Profile</Text> : null}
       </View>
+
       <View style={styles.media}>
         <PolaroidFrame imageUrl={post.mediaUrl} caption={post.caption} frameStyle={post.frameStyle} filterPreset={post.filterPreset} />
       </View>
+
       <DateStamp value={new Date(post.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase()} />
-      <Text style={styles.privacy}>{post.privacy === "PUBLIC" ? "Public" : "Friends"}</Text>
+      <Text style={styles.privacy}>{post.privacy === "PUBLIC" ? "🌍 Public" : "🔒 Friends Only"}</Text>
+
       <ReactionButton
         reactions={post.reactionCount}
         comments={post.commentCount}
         liked={liked}
         onReact={react}
         onComment={() => router.push(`/comments/${post.id}`)}
-        onShare={() => router.push(`/share?resourceType=post&resourceId=${post.id}`)}
+        onShare={() => setForwardVisible(true)}
       />
-      {ownsPost ? (
-        <Pressable style={styles.keepButton} onPress={toggleFeatured}>
-          <AppIcon name={post.profileFeatured ? "check" : "spark"} color={palette.ink} size={16} />
-          <Text style={styles.keepText}>{post.profileFeatured ? "Unpin from profile" : "Pin & keep on profile ★"}</Text>
+
+      <Link href={`/post/${post.id}`} style={styles.detail}>Open Frame ›</Link>
+
+      {/* Frame Options Modal (Long Press / ...) */}
+      <Modal visible={optionsVisible} transparent animationType="slide">
+        <Pressable style={styles.modalOverlay} onPress={() => setOptionsVisible(false)}>
+          <View style={styles.actionSheet}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>Frame Options</Text>
+
+            <Pressable style={styles.sheetItem} onPress={toggleFeatured}>
+              <AppIcon name="spark" color={palette.ink} size={20} />
+              <Text style={styles.sheetItemText}>
+                {post.profileFeatured ? "Unpin from Profile Grid" : "★ Pin & Keep on Profile Grid"}
+              </Text>
+            </Pressable>
+
+            <Pressable style={styles.sheetItem} onPress={togglePrivacy}>
+              <AppIcon name="lock" color={palette.ink} size={20} />
+              <Text style={styles.sheetItemText}>
+                {post.privacy === "PUBLIC" ? "Switch to Friends Only 🔒" : "Switch to Public 🌍"}
+              </Text>
+            </Pressable>
+
+            <Pressable style={styles.sheetItem} onPress={() => { setOptionsVisible(false); setForwardVisible(true); }}>
+              <AppIcon name="send" color={palette.ink} size={20} />
+              <Text style={styles.sheetItemText}>Forward to Friends</Text>
+            </Pressable>
+
+            <Pressable style={[styles.sheetItem, styles.sheetItemDelete]} onPress={confirmDelete}>
+              <AppIcon name="delete" color="#B8324A" size={20} />
+              <Text style={[styles.sheetItemText, styles.deleteText]}>Delete Frame</Text>
+            </Pressable>
+
+            <Pressable style={styles.sheetCancel} onPress={() => setOptionsVisible(false)}>
+              <Text style={styles.sheetCancelText}>Cancel</Text>
+            </Pressable>
+          </View>
         </Pressable>
-      ) : null}
-      <Link href={`/post/${post.id}`} style={styles.detail}>Open Frame</Link>
-    </View>
+      </Modal>
+
+      {/* Forward / Share Sheet */}
+      <Modal visible={forwardVisible} transparent animationType="slide">
+        <Pressable style={styles.modalOverlay} onPress={() => setForwardVisible(false)}>
+          <View style={styles.actionSheet}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>Forward to Friends</Text>
+
+            {friends.length === 0 ? (
+              <View style={styles.noFriends}>
+                <Text style={styles.noFriendsText}>No friends added yet.</Text>
+                <Text style={styles.noFriendsCopy}>Find friends in Search to forward Frames directly into chats.</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={friends}
+                keyExtractor={(item) => item.id}
+                style={{ maxHeight: 240, marginVertical: 8 }}
+                renderItem={({ item }) => {
+                  const isSent = Boolean(sentMap[item.id]);
+                  return (
+                    <View style={styles.friendRow}>
+                      <Image source={{ uri: item.avatarUrl ?? undefined }} style={styles.friendAvatar} />
+                      <View style={styles.friendMeta}>
+                        <Text style={styles.friendName}>{item.displayName}</Text>
+                        <Text style={styles.friendHandle}>@{item.username}</Text>
+                      </View>
+                      <Pressable
+                        style={[styles.forwardBtn, isSent && styles.forwardBtnSent]}
+                        disabled={isSent}
+                        onPress={() => forwardToFriend(item.id, item.displayName)}
+                      >
+                        <Text style={[styles.forwardBtnText, isSent && styles.forwardBtnTextSent]}>
+                          {isSent ? "✓ Sent" : "Send"}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  );
+                }}
+              />
+            )}
+
+            <View style={styles.shareDivider} />
+
+            <Pressable style={styles.sheetItem} onPress={shareExternal}>
+              <AppIcon name="send" color={palette.ink} size={20} />
+              <Text style={styles.sheetItemText}>Share via other apps...</Text>
+            </Pressable>
+
+            <Pressable style={styles.sheetCancel} onPress={() => setForwardVisible(false)}>
+              <Text style={styles.sheetCancelText}>Close</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
+    </Pressable>
   );
 }
 
@@ -98,13 +239,35 @@ function formatFrameLife(expiresAt: string, featured?: boolean) {
 const styles = StyleSheet.create({
   wrap: { backgroundColor: palette.whitePaper, borderRadius: 8, borderWidth: 1, borderColor: "#E4D9CA", padding: 14 },
   headerRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
-  deleteButton: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#F8E8E8", alignItems: "center", justifyContent: "center" },
+  headerRight: { flexDirection: "row", gap: 4 },
+  iconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: palette.paperCream, alignItems: "center", justifyContent: "center" },
   timeRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 },
   timePill: { color: palette.ink, backgroundColor: "#F8E7B2", borderRadius: 12, overflow: "hidden", paddingHorizontal: 9, paddingVertical: 4, fontSize: 11, fontWeight: "900" },
   timePillPinned: { color: palette.whitePaper, backgroundColor: palette.ink, borderRadius: 12, overflow: "hidden", paddingHorizontal: 9, paddingVertical: 4, fontSize: 11, fontWeight: "900" },
   media: { marginVertical: 14 },
   privacy: { color: palette.mutedBrown, fontWeight: "800", marginTop: 8 },
-  keepButton: { marginTop: 10, minHeight: 36, borderRadius: 18, backgroundColor: "#F8F1E6", borderWidth: 1, borderColor: "#E4D9CA", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 7 },
-  keepText: { color: palette.ink, fontSize: 12, fontWeight: "900" },
-  detail: { color: palette.ink, fontWeight: "900", marginTop: 12 }
+  detail: { color: palette.ink, fontWeight: "900", marginTop: 12 },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
+  actionSheet: { backgroundColor: palette.whitePaper, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 36, gap: 10 },
+  sheetHandle: { width: 44, height: 5, borderRadius: 3, backgroundColor: "#D4C8B8", alignSelf: "center", marginBottom: 8 },
+  sheetTitle: { fontSize: 18, fontWeight: "900", color: palette.ink, marginBottom: 6 },
+  sheetItem: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 14, paddingHorizontal: 12, borderRadius: 12, backgroundColor: palette.paperCream },
+  sheetItemDelete: { backgroundColor: "#FDF0F0" },
+  sheetItemText: { fontSize: 15, fontWeight: "800", color: palette.ink },
+  deleteText: { color: "#B8324A" },
+  sheetCancel: { alignItems: "center", paddingVertical: 14, borderRadius: 12, marginTop: 6, backgroundColor: palette.paperCream },
+  sheetCancelText: { fontSize: 15, fontWeight: "900", color: palette.mutedBrown },
+  noFriends: { padding: 18, alignItems: "center", gap: 6 },
+  noFriendsText: { fontSize: 16, fontWeight: "900", color: palette.ink },
+  noFriendsCopy: { fontSize: 13, color: palette.mutedBrown, textAlign: "center" },
+  friendRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 8, paddingHorizontal: 6, borderBottomWidth: 1, borderColor: "#E4D9CA" },
+  friendAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#E4D9CA" },
+  friendMeta: { flex: 1 },
+  friendName: { fontSize: 14, fontWeight: "900", color: palette.ink },
+  friendHandle: { fontSize: 12, color: palette.mutedBrown, fontWeight: "700" },
+  forwardBtn: { backgroundColor: palette.ink, paddingHorizontal: 16, paddingVertical: 7, borderRadius: 16 },
+  forwardBtnSent: { backgroundColor: "#E4D9CA" },
+  forwardBtnText: { color: palette.whitePaper, fontSize: 13, fontWeight: "900" },
+  forwardBtnTextSent: { color: palette.ink },
+  shareDivider: { height: 1, backgroundColor: "#E4D9CA", marginVertical: 6 }
 });

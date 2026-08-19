@@ -526,6 +526,18 @@ export async function deleteRemotePost(postId: string) {
   return { error };
 }
 
+export async function updateRemotePostPrivacy(postId: string, privacy: Privacy) {
+  const { data, error } = await supabase
+    .from("Post")
+    .update({ privacy })
+    .eq("id", postId)
+    .select("id, userId, mediaType, mediaUrl, thumbnailUrl, caption, locationName, latitude, longitude, privacy, frameStyle, filterPreset, profileFeatured, createdAt, expiresAt")
+    .single();
+  if (error || !data) return { post: null, error };
+  const posts = await mapPosts([data as DbPost]);
+  return { post: posts[0] ?? null, error: null };
+}
+
 export async function toggleRemoteReaction(post: PostDto, liked: boolean) {
   const { data: authData, error: userError } = await supabase.auth.getUser();
   if (userError || !authData.user) return { error: userError ?? new Error("Sign in to like Frames.") };
@@ -741,3 +753,5 @@ export async function markThreadSeen(threadUserId: string) {
     .neq("status", "SEEN");
   return { error };
 }
+
+
