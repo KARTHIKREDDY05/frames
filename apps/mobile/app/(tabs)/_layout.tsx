@@ -1,14 +1,14 @@
 import { Redirect, Tabs } from "expo-router";
-import { Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { palette } from "@frames/ui";
 import { AppIcon, type AppIconName } from "../../components/AppIcon";
 import { useAppStore } from "../../store/appStore";
 
-function TabIcon({ name, color, label }: { name: AppIconName; color: string; label: string }) {
+function TabIcon({ name, focused, label }: { name: AppIconName; focused: boolean; label: string }) {
   return (
-    <View style={{ alignItems: "center", justifyContent: "center", gap: 2, minWidth: 46 }}>
-      <AppIcon name={name} color={color} size={21} />
-      <Text style={{ color, fontSize: 10, fontWeight: "900" }}>{label}</Text>
+    <View style={[styles.tabIconWrap, focused && styles.tabIconWrapActive]}>
+      <AppIcon name={name} color={palette.ink} size={19} />
+      <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>{label}</Text>
     </View>
   );
 }
@@ -26,17 +26,54 @@ export default function TabsLayout() {
         tabBarActiveTintColor: palette.ink,
         tabBarInactiveTintColor: palette.mutedBrown,
         tabBarShowLabel: false,
-        tabBarStyle: { backgroundColor: palette.whitePaper, borderTopColor: "#E4D9CA", height: 78, paddingTop: 6 }
+        tabBarStyle: {
+          backgroundColor: palette.whitePaper,
+          borderTopWidth: 2,
+          borderTopColor: palette.ink,
+          height: 72,
+          paddingTop: 8,
+          shadowColor: palette.ink,
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: 0.1,
+          shadowRadius: 0
+        }
       }}
     >
-      <Tabs.Screen name="home" options={{ title: "Home", tabBarIcon: ({ color }) => <TabIcon name="home" color={color} label="Home" /> }} />
-      <Tabs.Screen name="search" options={{ title: "Search", tabBarIcon: ({ color }) => <TabIcon name="search" color={color} label="Search" /> }} />
-      <Tabs.Screen name="camera" options={{ title: "Camera", tabBarIcon: ({ color }) => <TabIcon name="camera" color={color} label="Camera" />, tabBarStyle: { display: "none" } }} />
-      <Tabs.Screen name="chats" options={{ title: "Chats", tabBarIcon: ({ color }) => <TabIcon name="comment" color={color} label="Chats" /> }} />
+      <Tabs.Screen name="home" options={{ title: "Home", tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} label="Home" /> }} />
+      <Tabs.Screen name="search" options={{ title: "Search", tabBarIcon: ({ focused }) => <TabIcon name="search" focused={focused} label="Search" /> }} />
+      <Tabs.Screen name="camera" options={{ title: "Camera", tabBarIcon: ({ focused }) => <TabIcon name="camera" focused={focused} label="Camera" />, tabBarStyle: { display: "none" } }} />
+      <Tabs.Screen name="chats" options={{ title: "Chats", tabBarIcon: ({ focused }) => <TabIcon name="comment" focused={focused} label="Chats" /> }} />
       <Tabs.Screen name="feed" options={{ href: null }} />
       <Tabs.Screen name="archive" options={{ href: null }} />
       <Tabs.Screen name="memories" options={{ href: null }} />
-      <Tabs.Screen name="profile" options={{ title: "Profile", tabBarIcon: ({ color }) => <TabIcon name="profile" color={color} label="Profile" /> }} />
+      <Tabs.Screen name="profile" options={{ title: "Profile", tabBarIcon: ({ focused }) => <TabIcon name="profile" focused={focused} label="Profile" /> }} />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabIconWrap: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 3,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 6
+  },
+  tabIconWrapActive: {
+    backgroundColor: palette.acidYellow,
+    borderWidth: 1.5,
+    borderColor: palette.ink,
+    transform: [{ rotate: "-1deg" }]
+  },
+  tabLabel: {
+    fontSize: 9,
+    fontWeight: "900",
+    color: palette.mutedBrown,
+    letterSpacing: 0.5,
+    textTransform: "uppercase"
+  },
+  tabLabelActive: {
+    color: palette.ink
+  }
+});

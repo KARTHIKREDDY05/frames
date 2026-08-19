@@ -3,7 +3,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { useCallback, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { PhotoFilter } from "@frames/types";
 import { palette } from "@frames/ui";
 import { AppIcon } from "../../components/AppIcon";
@@ -79,6 +79,20 @@ export default function CameraScreen() {
   };
 
   const captureWithDeviceCamera = async () => {
+    if (Platform.OS === "web") {
+      try {
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [4, 5],
+          quality: 0.9
+        });
+        if (!result.canceled && result.assets[0]?.uri) openEditor(result.assets[0].uri);
+      } catch {
+        // Handled
+      }
+      return;
+    }
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     if (!permissionResult.granted) {
       setCameraMessage("Camera permission is needed to take a Frame.");
@@ -95,6 +109,10 @@ export default function CameraScreen() {
   const takePhoto = async () => {
     if (isCapturing || !cameraActive) return;
     setActiveMode("photo");
+    if (Platform.OS === "web") {
+      await captureWithDeviceCamera();
+      return;
+    }
     if (!permission?.granted) {
       const result = await requestPermission();
       if (!result.granted) {
@@ -124,17 +142,24 @@ export default function CameraScreen() {
 
   const pickImage = async () => {
     setActiveMode("upload");
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      setCameraMessage("Gallery permission is needed to choose a photo.");
-      return;
+    try {
+      if (Platform.OS !== "web") {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permissionResult.granted) {
+          setCameraMessage("Gallery permission is needed to choose a photo.");
+          return;
+        }
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.9,
+        allowsEditing: true,
+        aspect: [4, 5]
+      });
+      if (!result.canceled && result.assets[0]?.uri) openEditor(result.assets[0].uri);
+    } catch {
+      // Handled
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      quality: 0.9,
-      allowsEditing: true
-    });
-    if (!result.canceled && result.assets[0]?.uri) openEditor(result.assets[0].uri);
   };
 
   const toggleFlash = () => {

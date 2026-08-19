@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Link, Stack } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { palette } from "@frames/ui";
 import { AppIcon } from "../components/AppIcon";
@@ -18,8 +18,25 @@ export default function RootLayout() {
   const mergeNotifications = useAppStore((state) => state.mergeNotifications);
   const latestNotification = useAppStore((state) => state.notifications.find((notification) => !notification.read && (!notification.recipientId || notification.recipientId === state.currentUser?.id)));
   const [followToast, setFollowToast] = useState<{ id: string; body: string } | null>(null);
+  const [dismissedToastIds, setDismissedToastIds] = useState<Record<string, boolean>>({});
   const seenRequestIds = useRef(new Set<string>());
-  const toast = useMemo(() => followToast ?? (latestNotification ? { id: latestNotification.id, body: latestNotification.body } : null), [followToast, latestNotification]);
+
+  const toast = useMemo(() => {
+    if (followToast && !dismissedToastIds[followToast.id]) return followToast;
+    if (latestNotification && !dismissedToastIds[latestNotification.id]) {
+      return { id: latestNotification.id, body: latestNotification.body };
+    }
+    return null;
+  }, [dismissedToastIds, followToast, latestNotification]);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setDismissedToastIds((prev) => ({ ...prev, [toast.id]: true }));
+      }, 4500);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   useEffect(() => {
     const hydrate = async () => {
@@ -45,7 +62,6 @@ export default function RootLayout() {
       seenRequestIds.current.add(incoming.id);
       const requester = result.users.get(incoming.requesterId);
       setFollowToast({ id: incoming.id, body: `${requester?.displayName ?? "Someone"} requested to follow you.` });
-      setTimeout(() => setFollowToast((value) => (value?.id === incoming.id ? null : value)), 5000);
     };
     void checkRequests();
     const interval = setInterval(() => { void checkRequests(); }, 15000);
@@ -85,15 +101,23 @@ export default function RootLayout() {
             <Stack.Screen name="export" options={{ presentation: "modal" }} />
           </Stack>
           {toast ? (
-            <Link href="/notifications" asChild>
-              <Pressable style={styles.toast}>
-                <View style={styles.toastIcon}><AppIcon name="bell" color={palette.ink} size={18} /></View>
-                <View style={styles.toastText}>
-                  <Text style={styles.toastTitle}>Frames</Text>
-                  <Text numberOfLines={2} style={styles.toastBody}>{toast.body}</Text>
-                </View>
+            <View style={styles.toast}>
+              <Link href="/notifications" asChild>
+                <Pressable style={styles.toastContent}>
+                  <View style={styles.toastIcon}><AppIcon name="bell" color={palette.ink} size={18} /></View>
+                  <View style={styles.toastText}>
+                    <Text style={styles.toastTitle}>Frames</Text>
+                    <Text numberOfLines={2} style={styles.toastBody}>{toast.body}</Text>
+                  </View>
+                </Pressable>
+              </Link>
+              <Pressable
+                style={styles.toastDismiss}
+                onPress={() => setDismissedToastIds((prev) => ({ ...prev, [toast.id]: true }))}
+              >
+                <Text style={styles.toastDismissText}>✕</Text>
               </Pressable>
-            </Link>
+            </View>
           ) : null}
         </View>
       </QueryClientProvider>
@@ -102,11 +126,23 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#171414", alignItems: "center" },
-  shell: { flex: 1, width: "100%", maxWidth: 560, backgroundColor: palette.paperCream, overflow: "hidden" },
-  toast: { position: "absolute", top: 16, left: 14, right: 14, minHeight: 66, borderRadius: 18, backgroundColor: "rgba(255,253,248,.98)", borderWidth: 1, borderColor: "#E4D9CA", flexDirection: "row", alignItems: "center", gap: 12, padding: 12, shadowColor: "#000", shadowOpacity: 0.18, shadowRadius: 18, elevation: 8 },
-  toastIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: palette.sunshine, alignItems: "center", justifyContent: "center" },
+  root: { flex: 1, backgroundColor: "#1A1817", alignItems: "center", justifyContent: "center" },
+  shell: {
+    flex: 1,
+    width: "100%",
+    maxWidth: 480,
+    backgroundColor: palette.paperCream,
+    borderLeftWidth: Platform.OS === "web" ? 2 : 0,
+    borderRightWidth: Platform.OS === "web" ? 2 : 0,
+    borderColor: palette.ink,
+    overflow: "hidden"
+  },
+  toast: { position: "absolute", top: 16, left: 14, right: 14, minHeight: 60, borderRadius: 8, backgroundColor: palette.whitePaper, borderWidth: 2, borderColor: palette.ink, flexDirection: "row", alignItems: "center", padding: 10, shadowColor: palette.ink, shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.9, shadowRadius: 0, elevation: 8, zIndex: 100 },
+  toastContent: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10 },
+  toastIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: palette.acidYellow, borderWidth: 1.5, borderColor: palette.ink, alignItems: "center", justifyContent: "center" },
   toastText: { flex: 1 },
-  toastTitle: { color: palette.ink, fontWeight: "900" },
-  toastBody: { color: palette.mutedBrown, fontWeight: "800", marginTop: 2, lineHeight: 18 }
+  toastTitle: { color: palette.ink, fontWeight: "900", fontSize: 13 },
+  toastBody: { color: palette.mutedBrown, fontWeight: "700", marginTop: 1, lineHeight: 16, fontSize: 11 },
+  toastDismiss: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center", marginLeft: 6 },
+  toastDismissText: { color: palette.mutedBrown, fontSize: 13, fontWeight: "900" }
 });
