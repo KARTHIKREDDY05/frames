@@ -21,6 +21,9 @@ export default function CameraScreen() {
   const [isCapturing, setIsCapturing] = useState(false);
   const [cameraActive, setCameraActive] = useState(true);
   const [activeMode, setActiveMode] = useState<"live" | "photo" | "upload">("photo");
+  const [gridOn, setGridOn] = useState(false);
+  const [timerSec, setTimerSec] = useState<0 | 3 | 5>(0);
+  const [countdown, setCountdown] = useState<number | null>(null);
   const setPendingMediaUrl = useAppStore((state) => state.setPendingMediaUrl);
   const setPendingCaptureMeta = useAppStore((state) => state.setPendingCaptureMeta);
 
@@ -106,20 +109,7 @@ export default function CameraScreen() {
     if (!result.canceled && result.assets[0]?.uri) openEditor(result.assets[0].uri);
   };
 
-  const takePhoto = async () => {
-    if (isCapturing || !cameraActive) return;
-    setActiveMode("photo");
-    if (Platform.OS === "web") {
-      await captureWithDeviceCamera();
-      return;
-    }
-    if (!permission?.granted) {
-      const result = await requestPermission();
-      if (!result.granted) {
-        await captureWithDeviceCamera();
-        return;
-      }
-    }
+  const executeSnap = async () => {
     setIsCapturing(true);
     try {
       if (cameraRef.current && isCameraReady) {
@@ -138,6 +128,46 @@ export default function CameraScreen() {
     } finally {
       setIsCapturing(false);
     }
+  };
+
+  const takePhoto = async () => {
+    if (isCapturing || !cameraActive) return;
+    setActiveMode("photo");
+    if (Platform.OS === "web") {
+      await captureWithDeviceCamera();
+      return;
+    }
+    if (!permission?.granted) {
+      const result = await requestPermission();
+      if (!result.granted) {
+        await captureWithDeviceCamera();
+        return;
+      }
+    }
+    if (timerSec > 0) {
+      setCountdown(timerSec);
+      let count = timerSec;
+      const interval = setInterval(() => {
+        count -= 1;
+        if (count <= 0) {
+          clearInterval(interval);
+          setCountdown(null);
+          void executeSnap();
+        } else {
+          setCountdown(count);
+        }
+      }, 1000);
+      return;
+    }
+    await executeSnap();
+  };
+
+  const cycleTimer = () => {
+    setTimerSec((prev) => (prev === 0 ? 3 : prev === 3 ? 5 : 0));
+  };
+
+  const toggleGrid = () => {
+    setGridOn((prev) => !prev);
   };
 
   const pickImage = async () => {
@@ -181,23 +211,50 @@ export default function CameraScreen() {
   const renderOverlay = () => (
     <>
       <View style={styles.topBar}>
-        <Pressable style={[styles.topIcon, flash === "on" && styles.topIconActive]} onPress={toggleFlash}>
-          <AppIcon name="flash" color={palette.whitePaper} size={18} />
-        </Pressable>
+        <View style={styles.topBarLeft}>
+          <Pressable style={[styles.topIcon, flash === "on" && styles.topIconActive]} onPress={toggleFlash}>
+            <AppIcon name="flash" color={palette.whitePaper} size={16} />
+          </Pressable>
+          <Pressable style={[styles.topIcon, timerSec > 0 && styles.topIconActive]} onPress={cycleTimer}>
+            <Text style={styles.timerIconText}>{timerSec === 0 ? "⏱" : `${timerSec}s`}</Text>
+          </Pressable>
+          <Pressable style={[styles.topIcon, gridOn && styles.topIconActive]} onPress={toggleGrid}>
+            <Text style={styles.gridIconText}>#</Text>
+          </Pressable>
+        </View>
+
         <View style={styles.titleWrap}>
           <Text style={styles.title}>Frames</Text>
           <Text style={styles.subtitle}>Lens • {photoFilterOptions.find((o) => o.value === selectedLens)?.label ?? "Natural"}</Text>
         </View>
+
         <Pressable style={styles.topIcon} onPress={switchCamera}>
-          <AppIcon name="switch" color={palette.whitePaper} size={18} />
+          <AppIcon name="switch" color={palette.whitePaper} size={16} />
         </Pressable>
       </View>
 
       {cameraMessage ? <Text style={styles.cameraMessage}>{cameraMessage}</Text> : null}
 
+      {/* Countdown Display */}
+      {countdown !== null ? (
+        <View style={styles.countdownOverlay}>
+          <View style={styles.countdownCircle}>
+            <Text style={styles.countdownNumber}>{countdown}</Text>
+          </View>
+        </View>
+      ) : null}
+
       <View pointerEvents="none" style={styles.guideWrap}>
         <LensOverlay lens={selectedLens} />
         <View style={styles.guideFrame}>
+          {gridOn ? (
+            <View style={styles.ruleOfThirds}>
+              <View style={styles.gridLineH1} />
+              <View style={styles.gridLineH2} />
+              <View style={styles.gridLineV1} />
+              <View style={styles.gridLineV2} />
+            </View>
+          ) : null}
           <View style={styles.cornerTopLeft} />
           <View style={styles.cornerTopRight} />
           <View style={styles.cornerBottomLeft} />
@@ -334,11 +391,22 @@ const styles = StyleSheet.create({
   pausedPreview: { flex: 1, backgroundColor: "#0F0D0D", alignItems: "center", justifyContent: "center", padding: 22 },
   permissionPreview: { flex: 1, backgroundColor: palette.ink, alignItems: "center", justifyContent: "center", padding: 22 },
   topBar: { position: "absolute", left: 0, right: 0, top: 0, zIndex: 30, paddingTop: 46, paddingHorizontal: 18, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  topBarLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
   titleWrap: { alignItems: "center" },
   title: { color: palette.whitePaper, fontSize: 18, fontWeight: "900", letterSpacing: 1 },
   subtitle: { color: palette.sunshine, fontSize: 11, fontWeight: "800", marginTop: 2 },
-  topIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(0,0,0,.45)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,.2)" },
+  topIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(0,0,0,.45)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,.2)" },
   topIconActive: { backgroundColor: "rgba(246,214,92,.42)", borderColor: "rgba(246,214,92,.85)" },
+  timerIconText: { color: palette.whitePaper, fontSize: 11, fontWeight: "900" },
+  gridIconText: { color: palette.whitePaper, fontSize: 16, fontWeight: "900" },
+  countdownOverlay: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center", zIndex: 40 },
+  countdownCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: "rgba(0,0,0,0.75)", borderWidth: 3, borderColor: palette.acidYellow, alignItems: "center", justifyContent: "center" },
+  countdownNumber: { color: palette.whitePaper, fontSize: 44, fontWeight: "900" },
+  ruleOfThirds: { ...StyleSheet.absoluteFillObject, opacity: 0.35 },
+  gridLineH1: { position: "absolute", top: "33.33%", left: 0, right: 0, height: 1, backgroundColor: "#FFFFFF" },
+  gridLineH2: { position: "absolute", top: "66.66%", left: 0, right: 0, height: 1, backgroundColor: "#FFFFFF" },
+  gridLineV1: { position: "absolute", left: "33.33%", top: 0, bottom: 0, width: 1, backgroundColor: "#FFFFFF" },
+  gridLineV2: { position: "absolute", left: "66.66%", top: 0, bottom: 0, width: 1, backgroundColor: "#FFFFFF" },
   cameraMessage: { position: "absolute", top: 102, left: 18, right: 18, zIndex: 28, padding: 10, borderRadius: 18, backgroundColor: "rgba(0,0,0,.55)", color: palette.whitePaper, fontWeight: "800", fontSize: 12, textAlign: "center" },
   guideWrap: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center", paddingHorizontal: 28, paddingTop: 90, paddingBottom: 170 },
   lensWash: { ...StyleSheet.absoluteFillObject },

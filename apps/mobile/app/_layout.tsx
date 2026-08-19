@@ -16,8 +16,7 @@ export default function RootLayout() {
   const completeIntro = useAppStore((state) => state.completeIntro);
   const currentUser = useAppStore((state) => state.currentUser);
   const mergeNotifications = useAppStore((state) => state.mergeNotifications);
-  const latestNotification = useAppStore((state) => state.notifications.find((notification) => !notification.read && (!notification.recipientId || notification.recipientId === state.currentUser?.id)));
-  const [followToast, setFollowToast] = useState<{ id: string; body: string } | null>(null);
+  const [liveToast, setLiveToast] = useState<{ id: string; body: string } | null>(null);
   const [dismissedToastIds, setDismissedToastIds] = useState<Record<string, boolean>>({});
   const seenRequestIds = useRef(new Set<string>());
 
@@ -25,12 +24,9 @@ export default function RootLayout() {
   const toastOpacity = useRef(new Animated.Value(0)).current;
 
   const toast = useMemo(() => {
-    if (followToast && !dismissedToastIds[followToast.id]) return followToast;
-    if (latestNotification && !dismissedToastIds[latestNotification.id]) {
-      return { id: latestNotification.id, body: latestNotification.body };
-    }
+    if (liveToast && !dismissedToastIds[liveToast.id]) return liveToast;
     return null;
-  }, [dismissedToastIds, followToast, latestNotification]);
+  }, [dismissedToastIds, liveToast]);
 
   const slideOut = () => {
     Animated.parallel([
@@ -83,7 +79,7 @@ export default function RootLayout() {
         if (!incoming || seenRequestIds.current.has(incoming.id)) return;
         seenRequestIds.current.add(incoming.id);
         const requester = result.users.get(incoming.requesterId);
-        setFollowToast({ id: incoming.id, body: `${requester?.displayName ?? "Someone"} requested to follow you.` });
+        setLiveToast({ id: incoming.id, body: `${requester?.displayName ?? "Someone"} requested to follow you.` });
       } catch {
         // Handled silently
       }

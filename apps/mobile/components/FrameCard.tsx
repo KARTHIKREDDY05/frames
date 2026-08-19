@@ -1,5 +1,5 @@
 import { Link, router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, FlatList, Image, Modal, Platform, Pressable, Share, StyleSheet, Text, View } from "react-native";
 import type { PostDto, UserDto } from "@frames/types";
 import { palette } from "@frames/ui";
@@ -25,10 +25,25 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
   const capturedLabel = formatCapturedAt(post.createdAt);
   const lifeLabel = formatFrameLife(post.expiresAt, post.profileFeatured);
 
+  const lastTap = useRef<number>(0);
+  const [showHeartPop, setShowHeartPop] = useState(false);
   const [optionsVisible, setOptionsVisible] = useState(false);
   const [forwardVisible, setForwardVisible] = useState(false);
   const [friendsList, setFriendsList] = useState<UserDto[]>(storeFriends);
   const [sentMap, setSentMap] = useState<Record<string, boolean>>({});
+
+  const handleDoubleTap = () => {
+    const now = Date.now();
+    if (now - lastTap.current < 300) {
+      if (!liked) {
+        reactToPost(post.id);
+        void toggleRemoteReaction(post, false);
+      }
+      setShowHeartPop(true);
+      setTimeout(() => setShowHeartPop(false), 700);
+    }
+    lastTap.current = now;
+  };
 
   useEffect(() => {
     if (forwardVisible && currentUser) {
@@ -138,9 +153,14 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
         </View>
       </View>
 
-      <View style={styles.media}>
+      <Pressable style={styles.media} onPress={handleDoubleTap}>
         <PolaroidFrame imageUrl={post.mediaUrl} caption={post.caption} frameStyle={post.frameStyle} filterPreset={post.filterPreset} />
-      </View>
+        {showHeartPop ? (
+          <View style={styles.heartPop}>
+            <AppIcon name="heart" color="#E63946" size={56} />
+          </View>
+        ) : null}
+      </Pressable>
 
       <View style={styles.metaFooter}>
         <DateStamp value={new Date(post.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase()} />
@@ -310,7 +330,8 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginTop: 4 },
   headerRight: { flexDirection: "row", gap: 4 },
   iconBtn: { width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, borderColor: palette.ink, backgroundColor: palette.softLavender, alignItems: "center", justifyContent: "center" },
-  media: { marginVertical: 12 },
+  media: { marginVertical: 12, position: "relative" },
+  heartPop: { position: "absolute", top: "40%", left: "40%", transform: [{ translateX: -10 }, { translateY: -10 }], shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 8, elevation: 10 },
   metaFooter: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8 },
   privacyChip: { paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1.5, borderColor: palette.ink, borderRadius: 4 },
   privacyPublic: { backgroundColor: palette.acidYellow },

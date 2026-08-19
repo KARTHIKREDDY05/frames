@@ -112,7 +112,7 @@ interface AppState {
 
 const nowIso = () => new Date().toISOString();
 const tomorrowIso = () => new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-const USERNAME_COOLDOWN_MS = 90 * 24 * 60 * 60 * 1000;
+const USERNAME_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000; // 30 days cooldown (once per month)
 function makeUsername(input: { displayName: string; username?: string; email: string }) {
   const fallback = input.email.split("@")[0] ?? `user_${Date.now()}`;
   const raw = input.username?.trim() || input.displayName.trim() || fallback;
@@ -199,7 +199,8 @@ export const useAppStore = create<AppState>()(
         const nextUsername = input.username ? makeUsername({ displayName: input.displayName ?? currentUser.displayName, username: input.username, email: input.email ?? currentUser.email ?? "" }) : currentUser.username;
         const usernameChanged = nextUsername !== currentUser.username;
         if (usernameChanged && currentUser.usernameUpdatedAt && Date.now() - new Date(currentUser.usernameUpdatedAt).getTime() < USERNAME_COOLDOWN_MS) {
-          return { ok: false, message: "Username can only be changed once every 90 days." };
+          const daysLeft = Math.ceil((USERNAME_COOLDOWN_MS - (Date.now() - new Date(currentUser.usernameUpdatedAt).getTime())) / (24 * 60 * 60 * 1000));
+          return { ok: false, message: `Username can only be changed once per month (30 days). You can change it again in ${daysLeft} day${daysLeft === 1 ? "" : "s"}.` };
         }
         const updated: UserDto = {
           ...currentUser,
