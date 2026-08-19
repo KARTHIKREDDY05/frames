@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, type StyleProp, type ViewStyle } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View, type StyleProp, type ViewStyle } from "react-native";
 import type { FrameStyle, PhotoFilter, Privacy } from "@frames/types";
 import { palette } from "@frames/ui";
 import { FrameButton } from "../components/FrameButton";
@@ -19,6 +19,7 @@ export default function FrameEditor() {
   const [privacy, setPrivacy] = useState<Privacy>("FRIENDS");
   const [frameStyle, setFrameStyle] = useState<FrameStyle>("POLAROID");
   const [filterPreset, setFilterPreset] = useState<PhotoFilter>(pendingCaptureMeta?.filterPreset ?? "ORIGINAL");
+  const [profileFeatured, setProfileFeatured] = useState(false);
   const [message, setMessage] = useState("");
   const [posting, setPosting] = useState(false);
   const mediaUrl = pendingMediaUrl;
@@ -79,6 +80,20 @@ export default function FrameEditor() {
       </View>
       <FrameButton icon="spark" label="AI Caption Assist" variant="secondary" onPress={suggestCaption} />
       <PrivacySelector value={privacy} onChange={setPrivacy} />
+
+      <View style={styles.featuredCard}>
+        <View style={styles.featuredMeta}>
+          <Text style={styles.featuredTitle}>Keep on Profile</Text>
+          <Text style={styles.featuredCopy}>Keep this Frame permanently on your profile grid after the 24-hour feed expires.</Text>
+        </View>
+        <Switch
+          value={profileFeatured}
+          onValueChange={setProfileFeatured}
+          thumbColor={palette.whitePaper}
+          trackColor={{ false: "#E4D9CA", true: palette.ink }}
+        />
+      </View>
+
       {message ? <Text style={styles.message}>{message}</Text> : null}
       <FrameButton icon="send" label={posting ? "Posting..." : "Post Frame"} onPress={() => {
         if (!mediaUrl) return;
@@ -91,6 +106,7 @@ export default function FrameEditor() {
           frameStyle,
           mediaUrl,
           filterPreset,
+          profileFeatured,
           locationName: pendingCaptureMeta?.locationName,
           latitude: pendingCaptureMeta?.latitude,
           longitude: pendingCaptureMeta?.longitude
@@ -145,6 +161,10 @@ const styles = StyleSheet.create({
   locationCard: { backgroundColor: palette.whitePaper, borderRadius: 8, borderWidth: 1, borderColor: "#E4D9CA", padding: 12, gap: 4 },
   locationTitle: { color: palette.ink, fontWeight: "900" },
   locationCopy: { color: palette.mutedBrown, lineHeight: 20, fontWeight: "700" },
+  featuredCard: { backgroundColor: palette.whitePaper, borderRadius: 8, borderWidth: 1, borderColor: "#E4D9CA", padding: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  featuredMeta: { flex: 1 },
+  featuredTitle: { color: palette.ink, fontWeight: "900", fontSize: 14 },
+  featuredCopy: { color: palette.mutedBrown, fontSize: 11, lineHeight: 16, marginTop: 2 },
   message: { color: palette.ink, backgroundColor: "#F8E7B2", borderRadius: 8, padding: 12, fontWeight: "800", lineHeight: 20 }
 });
 

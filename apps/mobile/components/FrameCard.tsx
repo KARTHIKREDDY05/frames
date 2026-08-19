@@ -52,7 +52,7 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
       </View>
       <View style={styles.timeRow}>
         <Text style={styles.timePill}>{lifeLabel}</Text>
-        {post.profileFeatured ? <Text style={styles.timePill}>Kept on profile</Text> : null}
+        {post.profileFeatured ? <Text style={styles.timePillPinned}>★ Pinned on Profile</Text> : null}
       </View>
       <View style={styles.media}>
         <PolaroidFrame imageUrl={post.mediaUrl} caption={post.caption} frameStyle={post.frameStyle} filterPreset={post.filterPreset} />
@@ -69,8 +69,8 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
       />
       {ownsPost ? (
         <Pressable style={styles.keepButton} onPress={toggleFeatured}>
-          <AppIcon name={post.profileFeatured ? "check" : "archive"} color={palette.ink} size={16} />
-          <Text style={styles.keepText}>{post.profileFeatured ? "Remove from profile" : "Keep on profile"}</Text>
+          <AppIcon name={post.profileFeatured ? "check" : "spark"} color={palette.ink} size={16} />
+          <Text style={styles.keepText}>{post.profileFeatured ? "Unpin from profile" : "Pin & keep on profile ★"}</Text>
         </Pressable>
       ) : null}
       <Link href={`/post/${post.id}`} style={styles.detail}>Open Frame</Link>
@@ -80,19 +80,19 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
 
 function formatCapturedAt(value: string) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Captured";
-  return `Captured ${date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+  if (Number.isNaN(date.getTime())) return "Taken today";
+  return `Taken at ${date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
 }
 
 function formatFrameLife(expiresAt: string, featured?: boolean) {
   const expires = new Date(expiresAt).getTime();
-  if (Number.isNaN(expires)) return featured ? "Profile Frame" : "24h Frame";
+  if (Number.isNaN(expires)) return featured ? "Profile Frame" : "24h Feed";
   const diff = expires - Date.now();
-  if (diff <= 0) return featured ? "Expired - profile only" : "Archived";
+  if (diff <= 0) return featured ? "Archived • Pinned" : "Archived to timeline";
   const hours = Math.floor(diff / 3600000);
   const minutes = Math.max(1, Math.floor((diff % 3600000) / 60000));
-  if (hours > 0) return `${hours}h ${minutes}m left`;
-  return `${minutes}m left`;
+  if (hours > 0) return `${hours}h ${minutes}m in feed`;
+  return `${minutes}m in feed`;
 }
 
 const styles = StyleSheet.create({
@@ -101,6 +101,7 @@ const styles = StyleSheet.create({
   deleteButton: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#F8E8E8", alignItems: "center", justifyContent: "center" },
   timeRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 },
   timePill: { color: palette.ink, backgroundColor: "#F8E7B2", borderRadius: 12, overflow: "hidden", paddingHorizontal: 9, paddingVertical: 4, fontSize: 11, fontWeight: "900" },
+  timePillPinned: { color: palette.whitePaper, backgroundColor: palette.ink, borderRadius: 12, overflow: "hidden", paddingHorizontal: 9, paddingVertical: 4, fontSize: 11, fontWeight: "900" },
   media: { marginVertical: 14 },
   privacy: { color: palette.mutedBrown, fontWeight: "800", marginTop: 8 },
   keepButton: { marginTop: 10, minHeight: 36, borderRadius: 18, backgroundColor: "#F8F1E6", borderWidth: 1, borderColor: "#E4D9CA", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 7 },

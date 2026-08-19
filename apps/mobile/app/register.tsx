@@ -1,10 +1,10 @@
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { palette } from "@frames/ui";
 import { FrameButton } from "../components/FrameButton";
 import { PaperBackground } from "../components/PaperBackground";
-import { createVerifiedEmailAccount, shouldShowOAuthProvider, signInWithOAuthProvider } from "../services/supabase";
+import { createVerifiedEmailAccount, ensureUserProfile, shouldShowOAuthProvider, signInWithOAuthProvider, supabase } from "../services/supabase";
 import { useAppStore } from "../store/appStore";
 
 const oauthProviders = [
@@ -13,6 +13,8 @@ const oauthProviders = [
 ];
 
 export default function Register() {
+  const setCurrentUser = useAppStore((state) => state.setCurrentUser);
+  const completeIntro = useAppStore((state) => state.completeIntro);
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -20,12 +22,12 @@ export default function Register() {
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const completeIntro = useAppStore((state) => state.completeIntro);
+
   const createAccount = async () => {
     setError("");
     setStatus("");
-    if (!displayName.trim() || !email.trim() || !username.trim() || !password) {
-      setError("Name, email, username, and password are required.");
+    if (!email.trim() || !password || !username.trim()) {
+      setError("Email, password, and username are required.");
       return;
     }
     if (password.length < 8) {
@@ -33,15 +35,10 @@ export default function Register() {
       return;
     }
     setSubmitting(true);
-    const { error: authError } = await createVerifiedEmailAccount({ displayName, username, email, password });
+    const { error: signUpError } = await createVerifiedEmailAccount({ displayName, email, password, username });
     setSubmitting(false);
-    if (authError) {
-      const message = authError.message.toLowerCase();
-      setError(message.includes("duplicate") || message.includes("already")
-        ? "That email already has a Frames account. Sign in instead, or use a different email."
-        : authError.message.includes("Database error saving new user")
-          ? "Supabase rejected this signup. Try a different email, or sign in if this email was already used."
-          : authError.message);
+    if (signUpError) {
+      setError(signUpError.message);
       return;
     }
     setStatus("Verification email sent. Confirm your email before signing in.");
@@ -50,14 +47,22 @@ export default function Register() {
 
   const startOAuth = async (provider: "google" | "github") => {
     setError("");
+    setSubmitting(true);
     const { error: authError } = await signInWithOAuthProvider(provider);
+    setSubmitting(false);
     if (authError) {
       const providerName = provider[0]!.toUpperCase() + provider.slice(1);
       setError(authError.message.toLowerCase().includes("provider")
-        ? `${providerName} OAuth is not enabled in Supabase yet. Enable ${providerName} in Supabase Auth Providers and add https://frames-test-build.vercel.app/auth/callback as an allowed redirect URL.`
+        ? `${providerName} OAuth is not enabled in Supabase yet. Enable ${providerName} in Supabase Auth Providers.`
         : authError.message);
-    } else {
+      return;
+    }
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData?.session?.user) {
+      const { profile } = await ensureUserProfile(sessionData.session.user);
+      if (profile) setCurrentUser(profile);
       completeIntro();
+      router.replace("/(tabs)/home");
     }
   };
 

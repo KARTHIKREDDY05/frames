@@ -5,7 +5,7 @@ import { palette } from "@frames/ui";
 import { AppIcon, type AppIconName } from "../components/AppIcon";
 import { FrameButton } from "../components/FrameButton";
 import { PaperBackground } from "../components/PaperBackground";
-import { signInWithOAuthProvider } from "../services/supabase";
+import { ensureUserProfile, signInWithOAuthProvider, supabase } from "../services/supabase";
 import { useAppStore } from "../store/appStore";
 
 const steps: Array<{ icon: AppIconName; title: string; copy: string }> = [
@@ -21,6 +21,7 @@ export default function Index() {
   const [lineIndex, setLineIndex] = useState(0);
   const hasSeenIntro = useAppStore((state) => state.hasSeenIntro);
   const currentUser = useAppStore((state) => state.currentUser);
+  const setCurrentUser = useAppStore((state) => state.setCurrentUser);
   const completeIntro = useAppStore((state) => state.completeIntro);
   const [authError, setAuthError] = useState("");
 
@@ -97,8 +98,19 @@ export default function Index() {
                 onPress={async () => {
                   setAuthError("");
                   const { error } = await signInWithOAuthProvider("google");
-                  if (error) setAuthError("Google login is almost ready. Finish enabling Google in Supabase, then this button will launch Google sign-in.");
-                  else completeIntro();
+                  if (error) {
+                    setAuthError(error.message.includes("provider")
+                      ? "Google OAuth needs to be enabled in your Supabase Auth Providers."
+                      : error.message);
+                    return;
+                  }
+                  const { data: sessionData } = await supabase.auth.getSession();
+                  if (sessionData?.session?.user) {
+                    const { profile } = await ensureUserProfile(sessionData.session.user);
+                    if (profile) setCurrentUser(profile);
+                    completeIntro();
+                    router.replace("/(tabs)/home");
+                  }
                 }}
               />
               <Link href="/register" asChild><FrameButton icon="user-plus" label="Create Account" onPress={completeIntro} /></Link>

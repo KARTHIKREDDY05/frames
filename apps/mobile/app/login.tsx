@@ -4,7 +4,7 @@ import { StyleSheet, Text, TextInput, View } from "react-native";
 import { palette } from "@frames/ui";
 import { FrameButton } from "../components/FrameButton";
 import { PaperBackground } from "../components/PaperBackground";
-import { ensureUserProfile, shouldShowOAuthProvider, signInWithOAuthProvider, signInWithVerifiedEmail } from "../services/supabase";
+import { ensureUserProfile, shouldShowOAuthProvider, signInWithOAuthProvider, signInWithVerifiedEmail, supabase } from "../services/supabase";
 import { useAppStore } from "../store/appStore";
 
 const oauthProviders = [
@@ -46,14 +46,22 @@ export default function Login() {
   };
   const startOAuth = async (provider: "google" | "github") => {
     setError("");
+    setLoading(true);
     const { error: authError } = await signInWithOAuthProvider(provider);
+    setLoading(false);
     if (authError) {
       const providerName = provider[0]!.toUpperCase() + provider.slice(1);
       setError(authError.message.toLowerCase().includes("provider")
-        ? `${providerName} OAuth is not enabled in Supabase yet. Enable ${providerName} in Supabase Auth Providers and add https://frames-test-build.vercel.app/auth/callback as an allowed redirect URL.`
+        ? `${providerName} OAuth is not enabled in Supabase yet. Enable ${providerName} in Supabase Auth Providers.`
         : authError.message);
-    } else {
+      return;
+    }
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData?.session?.user) {
+      const { profile } = await ensureUserProfile(sessionData.session.user);
+      if (profile) setCurrentUser(profile);
       completeIntro();
+      router.replace("/(tabs)/home");
     }
   };
   return (

@@ -1,5 +1,9 @@
 import { createClient, type Provider, type User } from "@supabase/supabase-js";
+import * as WebBrowser from "expo-web-browser";
+import * as Linking from "expo-linking";
 import type { FrameStyle, PhotoFilter, PostDto, Privacy, UserDto } from "@frames/types";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? "https://fjhfmxpuyijwinvmqsch.supabase.co";
 export const SUPABASE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "sb_publishable_hKlYOlHiS9ApC6y55NTPVg_oD9ZQWSs";
@@ -82,7 +86,7 @@ interface DbNotification {
 
 export function getAuthRedirectUrl(path = "/auth/callback") {
   if (typeof window !== "undefined" && window.location?.origin) return `${window.location.origin}${path}`;
-  return `frames:/${path}`;
+  return Linking.createURL(path);
 }
 
 export function isOAuthProviderEnabled(provider: Provider) {
@@ -118,12 +122,48 @@ export async function signInWithOAuthProvider(provider: Provider) {
     return { data: null, error: new Error(`${provider} provider is not enabled.`) };
   }
 
-  return supabase.auth.signInWithOAuth({
+  const redirectUrl = getAuthRedirectUrl();
+  const isWeb = typeof window !== "undefined" && Boolean(window.location?.origin);
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: getAuthRedirectUrl()
+      redirectTo: redirectUrl,
+      skipBrowserRedirect: !isWeb
     }
   });
+
+  if (error || !data?.url) {
+    return { data, error };
+  }
+
+  if (!isWeb) {
+    try {
+      const authRes = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+      if (authRes.type === "success" && authRes.url) {
+        const urlToParse = authRes.url.replace("#", "?");
+        const parsed = new URL(urlToParse);
+        const code = parsed.searchParams.get("code");
+        const accessToken = parsed.searchParams.get("access_token");
+        const refreshToken = parsed.searchParams.get("refresh_token");
+
+        if (code) {
+          const { data: sessionData, error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
+          return { data: sessionData, error: sessionError };
+        } else if (accessToken && refreshToken) {
+          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+          return { data: sessionData, error: sessionError };
+        }
+      }
+    } catch (browserError) {
+      return { data: null, error: browserError instanceof Error ? browserError : new Error("OAuth window error") };
+    }
+  }
+
+  return { data, error: null };
 }
 
 export function mapDbUser(row: DbUser): UserDto {
@@ -412,7 +452,7 @@ function blobToDataUrl(blob: Blob) {
   });
 }
 
-export async function createRemotePost(input: { caption: string; privacy: Privacy; frameStyle: FrameStyle; mediaUrl: string; filterPreset?: PhotoFilter; locationName?: string | null; latitude?: number | null; longitude?: number | null }) {
+export async function createRemotePost(input: { caption: string; privacy: Privacy; frameStyle: FrameStyle; mediaUrl: string; filterPreset?: PhotoFilter; profileFeatured?: boolean; locationName?: string | null; latitude?: number | null; longitude?: number | null }) {
   const { data: authData, error: userError } = await supabase.auth.getUser();
   if (userError || !authData.user) return { post: null, error: userError ?? new Error("Sign in to post a Frame.") };
   const uploaded = await uploadFrameMedia(input.mediaUrl, authData.user.id);
@@ -432,7 +472,7 @@ export async function createRemotePost(input: { caption: string; privacy: Privac
       privacy: input.privacy,
       frameStyle: input.frameStyle,
       filterPreset: input.filterPreset ?? "ORIGINAL",
-      profileFeatured: false,
+      profileFeatured: input.profileFeatured ?? false,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
     })
     .select("id, userId, mediaType, mediaUrl, thumbnailUrl, caption, locationName, latitude, longitude, privacy, frameStyle, filterPreset, profileFeatured, createdAt, expiresAt")
@@ -553,6 +593,51 @@ export async function fetchProfileStats(userId: string) {
     supabase.from("Friendship").select("id", { count: "exact", head: true }).eq("requesterId", userId).eq("status", "ACCEPTED")
   ]);
   return { friends: friends ?? 0, followers: followers ?? 0, following: following ?? 0 };
+}
+
+export async function fetchFollowersList(userId: string) {
+  const { data, error } = await supabase
+    .from("Friendship")
+    .select("requesterId")
+    .eq("receiverId", userId)
+    .eq("status", "ACCEPTED");
+  if (error || !data || data.length === 0) return { users: [], error };
+  const userIds = data.map((r) => r.requesterId);
+  const { data: userData, error: userError } = await supabase
+    .from("User")
+    .select("id, username, displayName, email, avatarUrl, bio, defaultPrivacy, profileVisibility, usernameUpdatedAt, lastSeenAt")
+    .in("id", userIds);
+  return { users: ((userData ?? []) as DbUser[]).map(mapDbUser), error: userError };
+}
+
+export async function fetchFollowingList(userId: string) {
+  const { data, error } = await supabase
+    .from("Friendship")
+    .select("receiverId")
+    .eq("requesterId", userId)
+    .eq("status", "ACCEPTED");
+  if (error || !data || data.length === 0) return { users: [], error };
+  const userIds = data.map((r) => r.receiverId);
+  const { data: userData, error: userError } = await supabase
+    .from("User")
+    .select("id, username, displayName, email, avatarUrl, bio, defaultPrivacy, profileVisibility, usernameUpdatedAt, lastSeenAt")
+    .in("id", userIds);
+  return { users: ((userData ?? []) as DbUser[]).map(mapDbUser), error: userError };
+}
+
+export async function fetchFriendsList(userId: string) {
+  const { data, error } = await supabase
+    .from("Friendship")
+    .select("requesterId, receiverId")
+    .or(`requesterId.eq.${userId},receiverId.eq.${userId}`)
+    .eq("status", "ACCEPTED");
+  if (error || !data || data.length === 0) return { users: [], error };
+  const userIds = Array.from(new Set(data.map((r) => (r.requesterId === userId ? r.receiverId : r.requesterId))));
+  const { data: userData, error: userError } = await supabase
+    .from("User")
+    .select("id, username, displayName, email, avatarUrl, bio, defaultPrivacy, profileVisibility, usernameUpdatedAt, lastSeenAt")
+    .in("id", userIds);
+  return { users: ((userData ?? []) as DbUser[]).map(mapDbUser), error: userError };
 }
 
 export function mapDbChatMessage(row: DbChatMessage, currentUserId: string) {
