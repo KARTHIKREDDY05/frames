@@ -21,17 +21,21 @@ export default function ChatsScreen() {
     let mounted = true;
     const loadRemoteFriends = async () => {
       if (!currentUser) return;
-      const [result, chatResult] = await Promise.all([fetchMyFriendships(), fetchMyChatMessages()]);
-      if (!mounted || result.error) return;
-      mergeChatMessages(chatResult.messages);
-      const accepted = result.friendships
-        .filter((friendship) => friendship.status === "ACCEPTED")
-        .map((friendship) => {
-          const otherId = friendship.requesterId === currentUser.id ? friendship.receiverId : friendship.requesterId;
-          return result.users.get(otherId);
-        })
-        .filter((user): user is UserDto => Boolean(user));
-      setRemoteFriends(accepted);
+      try {
+        const [result, chatResult] = await Promise.all([fetchMyFriendships(), fetchMyChatMessages()]);
+        if (!mounted || result.error) return;
+        mergeChatMessages(chatResult.messages);
+        const accepted = result.friendships
+          .filter((friendship) => friendship.status === "ACCEPTED")
+          .map((friendship) => {
+            const otherId = friendship.requesterId === currentUser.id ? friendship.receiverId : friendship.requesterId;
+            return result.users.get(otherId);
+          })
+          .filter((user): user is UserDto => Boolean(user));
+        setRemoteFriends(accepted);
+      } catch {
+        // Fallback gracefully
+      }
     };
     void loadRemoteFriends();
     return () => {
@@ -65,7 +69,7 @@ export default function ChatsScreen() {
         const unreadCount = threadMessages.filter((m) => m.fromUserId !== currentUser?.id && m.status !== "SEEN").length;
         return { user, last, unreadCount };
       })
-      .filter((row) => row.last || friends.some((f) => f.id === row.user.id) || remoteFriends.some((f) => f.id === row.user.id))
+      .filter((row) => row.last || friends.some((f) => f.id === row.user.id) || remoteFriends.some((f) => f.id === row.user.id) || discoverableUsers.some((u) => u.id === row.user.id))
       .filter((row) => {
         const needle = query.trim().toLowerCase();
         if (!needle) return true;
@@ -119,7 +123,7 @@ export default function ChatsScreen() {
           <View style={styles.empty}>
             <AppIcon name="comment" color={palette.ink} size={36} />
             <Text style={styles.emptyTitle}>No conversations yet</Text>
-            <Text style={styles.emptyCopy}>Connect with friends or accept follow requests to start messaging.</Text>
+            <Text style={styles.emptyCopy}>Connect with friends or explore discoverable users to start chatting.</Text>
             <Link href="/(tabs)/search" asChild>
               <FrameButton icon="search" label="Discover Friends" />
             </Link>
@@ -131,7 +135,7 @@ export default function ChatsScreen() {
           const mine = last?.fromUserId === currentUser?.id;
 
           return (
-            <Link href={`/chat/${user.id}`} asChild>
+            <Link key={user.id} href={`/chat/${user.id}`} asChild>
               <Pressable style={[styles.chatCard, unreadCount > 0 && styles.chatCardUnread]}>
                 <View style={styles.avatarWrap}>
                   <Image source={{ uri: user.avatarUrl ?? undefined }} style={styles.avatar} />
@@ -141,7 +145,7 @@ export default function ChatsScreen() {
                 <View style={styles.meta}>
                   <View style={styles.nameRow}>
                     <Text numberOfLines={1} style={styles.name}>{user.displayName}</Text>
-                    <Text style={styles.time}>{last ? formatChatTime(last.createdAt) : "New"}</Text>
+                    <Text style={styles.time}>{last ? formatChatTime(last.createdAt) : "Ready"}</Text>
                   </View>
 
                   <View style={styles.snippetRow}>
@@ -152,7 +156,7 @@ export default function ChatsScreen() {
                         </Text>
                       ) : null}
                       <Text numberOfLines={1} style={[styles.preview, unreadCount > 0 && styles.previewBold]}>
-                        {last ? (last.mediaUrl && !last.text ? "📷 Photo Frame" : last.text) : "Tap to say hello..."}
+                        {last ? (last.mediaUrl && !last.text ? "📷 Photo Frame" : last.text) : "Tap to start chatting..."}
                       </Text>
                     </View>
 

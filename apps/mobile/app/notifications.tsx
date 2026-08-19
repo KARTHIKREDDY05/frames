@@ -18,20 +18,27 @@ export default function NotificationsScreen() {
 
   const load = async () => {
     setMessage("");
-    const [{ notifications: remoteNotifications }, friendshipResult] = await Promise.all([fetchRemoteNotifications(), fetchMyFriendships()]);
-    mergeNotifications(remoteNotifications);
-    if (!currentUser) return;
-    const mapped = friendshipResult.friendships.map((friendship) => {
-      const otherId = friendship.requesterId === currentUser.id ? friendship.receiverId : friendship.requesterId;
-      const otherUser = friendshipResult.users.get(otherId);
-      return {
-        id: friendship.id,
-        status: friendship.status,
-        receiverId: friendship.receiverId,
-        user: otherUser
-      };
-    });
-    setRequests(mapped);
+    try {
+      const [{ notifications: remoteNotifications }, friendshipResult] = await Promise.all([
+        fetchRemoteNotifications(),
+        fetchMyFriendships()
+      ]);
+      mergeNotifications(remoteNotifications);
+      if (!currentUser) return;
+      const mapped = friendshipResult.friendships.map((friendship) => {
+        const otherId = friendship.requesterId === currentUser.id ? friendship.receiverId : friendship.requesterId;
+        const otherUser = friendshipResult.users.get(otherId);
+        return {
+          id: friendship.id,
+          status: friendship.status,
+          receiverId: friendship.receiverId,
+          user: otherUser
+        };
+      });
+      setRequests(mapped);
+    } catch {
+      // Keep store notifications visible
+    }
   };
 
   useEffect(() => {
@@ -76,7 +83,7 @@ export default function NotificationsScreen() {
           <Text style={styles.sectionTitle}>Follow Requests</Text>
           {requests.filter((request) => request.status === "PENDING" && request.receiverId === currentUser?.id).map((request) => (
             <View key={request.id} style={[styles.card, styles.requestCard]}>
-              <Link href={`/user/${request.user?.id}`} asChild>
+              <Link href={request.user?.id ? `/user/${request.user.id}` : "#"} asChild>
                 <Pressable style={styles.userClickable}>
                   <Image source={{ uri: request.user?.avatarUrl ?? undefined }} style={styles.avatar} />
                   <View style={styles.requestMeta}>
@@ -101,7 +108,7 @@ export default function NotificationsScreen() {
       {/* Your Connections Section */}
       {requests.some((request) => request.receiverId !== currentUser?.id) ? (
         <View style={styles.sectionWrap}>
-          <Text style={styles.sectionTitle}>Your Follows</Text>
+          <Text style={styles.sectionTitle}>Your Connections</Text>
           {requests.filter((request) => request.receiverId !== currentUser?.id).map((request) => (
             <Link key={request.id} href={request.user?.id ? `/user/${request.user.id}` : "#"} asChild>
               <Pressable style={styles.card}>

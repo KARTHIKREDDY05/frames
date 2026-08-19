@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Link, Stack } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Platform, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
+import { Animated, Platform, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { palette } from "@frames/ui";
 import { AppIcon } from "../components/AppIcon";
@@ -21,6 +21,9 @@ export default function RootLayout() {
   const [dismissedToastIds, setDismissedToastIds] = useState<Record<string, boolean>>({});
   const seenRequestIds = useRef(new Set<string>());
 
+  const toastAnim = useRef(new Animated.Value(-100)).current;
+  const toastOpacity = useRef(new Animated.Value(0)).current;
+
   const toast = useMemo(() => {
     if (followToast && !dismissedToastIds[followToast.id]) return followToast;
     if (latestNotification && !dismissedToastIds[latestNotification.id]) {
@@ -29,12 +32,30 @@ export default function RootLayout() {
     return null;
   }, [dismissedToastIds, followToast, latestNotification]);
 
+  const slideOut = () => {
+    Animated.parallel([
+      Animated.timing(toastAnim, { toValue: -100, duration: 350, useNativeDriver: Platform.OS !== "web" }),
+      Animated.timing(toastOpacity, { toValue: 0, duration: 300, useNativeDriver: Platform.OS !== "web" })
+    ]).start(() => {
+      if (toast) setDismissedToastIds((prev) => ({ ...prev, [toast.id]: true }));
+    });
+  };
+
   useEffect(() => {
     if (toast) {
+      Animated.parallel([
+        Animated.spring(toastAnim, { toValue: 16, tension: 50, friction: 8, useNativeDriver: Platform.OS !== "web" }),
+        Animated.timing(toastOpacity, { toValue: 1, duration: 250, useNativeDriver: Platform.OS !== "web" })
+      ]).start();
+
       const timer = setTimeout(() => {
-        setDismissedToastIds((prev) => ({ ...prev, [toast.id]: true }));
+        slideOut();
       }, 4500);
+
       return () => clearTimeout(timer);
+    } else {
+      toastAnim.setValue(-100);
+      toastOpacity.setValue(0);
     }
   }, [toast]);
 
@@ -54,17 +75,21 @@ export default function RootLayout() {
     if (!currentUser) return;
     let mounted = true;
     const checkRequests = async () => {
-      const [result, notificationResult] = await Promise.all([fetchMyFriendships(), fetchRemoteNotifications()]);
-      if (!mounted || result.error) return;
-      mergeNotifications(notificationResult.notifications);
-      const incoming = result.friendships.find((friendship) => friendship.receiverId === currentUser.id && friendship.status === "PENDING");
-      if (!incoming || seenRequestIds.current.has(incoming.id)) return;
-      seenRequestIds.current.add(incoming.id);
-      const requester = result.users.get(incoming.requesterId);
-      setFollowToast({ id: incoming.id, body: `${requester?.displayName ?? "Someone"} requested to follow you.` });
+      try {
+        const [result, notificationResult] = await Promise.all([fetchMyFriendships(), fetchRemoteNotifications()]);
+        if (!mounted || result.error) return;
+        mergeNotifications(notificationResult.notifications);
+        const incoming = result.friendships.find((friendship) => friendship.receiverId === currentUser.id && friendship.status === "PENDING");
+        if (!incoming || seenRequestIds.current.has(incoming.id)) return;
+        seenRequestIds.current.add(incoming.id);
+        const requester = result.users.get(incoming.requesterId);
+        setFollowToast({ id: incoming.id, body: `${requester?.displayName ?? "Someone"} requested to follow you.` });
+      } catch {
+        // Handled silently
+      }
     };
     void checkRequests();
-    const interval = setInterval(() => { void checkRequests(); }, 15000);
+    const interval = setInterval(() => { void checkRequests(); }, 20000);
     return () => {
       mounted = false;
       clearInterval(interval);
@@ -100,9 +125,18 @@ export default function RootLayout() {
             <Stack.Screen name="share" options={{ presentation: "modal" }} />
             <Stack.Screen name="export" options={{ presentation: "modal" }} />
           </Stack>
+
           {toast ? (
-            <View style={styles.toast}>
-              <Link href="/notifications" asChild>
+            <Animated.View
+              style={[
+                styles.toast,
+                {
+                  top: toastAnim,
+                  opacity: toastOpacity
+                }
+              ]}
+            >
+              <Link href="/notifications" asChild onPress={slideOut}>
                 <Pressable style={styles.toastContent}>
                   <View style={styles.toastIcon}><AppIcon name="bell" color={palette.ink} size={18} /></View>
                   <View style={styles.toastText}>
@@ -111,13 +145,10 @@ export default function RootLayout() {
                   </View>
                 </Pressable>
               </Link>
-              <Pressable
-                style={styles.toastDismiss}
-                onPress={() => setDismissedToastIds((prev) => ({ ...prev, [toast.id]: true }))}
-              >
+              <Pressable style={styles.toastDismiss} onPress={slideOut}>
                 <Text style={styles.toastDismissText}>✕</Text>
               </Pressable>
-            </View>
+            </Animated.View>
           ) : null}
         </View>
       </QueryClientProvider>
@@ -137,12 +168,12 @@ const styles = StyleSheet.create({
     borderColor: palette.ink,
     overflow: "hidden"
   },
-  toast: { position: "absolute", top: 16, left: 14, right: 14, minHeight: 60, borderRadius: 8, backgroundColor: palette.whitePaper, borderWidth: 2, borderColor: palette.ink, flexDirection: "row", alignItems: "center", padding: 10, shadowColor: palette.ink, shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.9, shadowRadius: 0, elevation: 8, zIndex: 100 },
+  toast: { position: "absolute", left: 14, right: 14, minHeight: 60, borderRadius: 8, backgroundColor: palette.whitePaper, borderWidth: 2, borderColor: palette.ink, flexDirection: "row", alignItems: "center", padding: 10, shadowColor: palette.ink, shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.9, shadowRadius: 0, elevation: 8, zIndex: 100 },
   toastContent: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10 },
   toastIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: palette.acidYellow, borderWidth: 1.5, borderColor: palette.ink, alignItems: "center", justifyContent: "center" },
   toastText: { flex: 1 },
   toastTitle: { color: palette.ink, fontWeight: "900", fontSize: 13 },
   toastBody: { color: palette.mutedBrown, fontWeight: "700", marginTop: 1, lineHeight: 16, fontSize: 11 },
-  toastDismiss: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center", marginLeft: 6 },
-  toastDismissText: { color: palette.mutedBrown, fontSize: 13, fontWeight: "900" }
+  toastDismiss: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center", marginLeft: 6, backgroundColor: palette.paperCream, borderWidth: 1, borderColor: palette.ink },
+  toastDismissText: { color: palette.ink, fontSize: 12, fontWeight: "900" }
 });
