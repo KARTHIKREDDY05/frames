@@ -6,7 +6,7 @@ import { AppIcon } from "../../components/AppIcon";
 import { FrameButton } from "../../components/FrameButton";
 import { fetchFollowersList, fetchFollowingList, fetchFriendsList, fetchProfileStats, fetchUserPosts } from "../../services/supabase";
 import { useAppStore } from "../../store/appStore";
-import type { UserDto } from "@frames/types";
+import type { PostDto, UserDto } from "@frames/types";
 
 export default function ProfileScreen() {
   const user = useAppStore((state) => state.currentUser);
@@ -57,7 +57,10 @@ export default function ProfileScreen() {
   }
 
   const archivedPosts = dailyFrames.flatMap((frame) => frame.posts.filter((post) => post.user.id === user.id && post.profileFeatured));
-  const gridPosts = [...posts.filter((post) => post.user.id === user.id && shouldShowOnProfile(post.expiresAt, post.profileFeatured)), ...archivedPosts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const postMap = new Map<string, PostDto>();
+  archivedPosts.forEach((p) => postMap.set(p.id, p));
+  posts.filter((post) => post.user.id === user.id && shouldShowOnProfile(post.expiresAt, post.profileFeatured)).forEach((p) => postMap.set(p.id, p));
+  const gridPosts = Array.from(postMap.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>

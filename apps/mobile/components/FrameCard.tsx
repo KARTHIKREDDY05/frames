@@ -36,16 +36,26 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
     const next = !post.profileFeatured;
     mergePosts([{ ...post, profileFeatured: next }]);
     setOptionsVisible(false);
-    const { post: updated } = await setRemotePostProfileFeatured(post.id, next);
+    const { post: updated, error } = await setRemotePostProfileFeatured(post.id, next);
     if (updated) mergePosts([updated]);
+    if (error) {
+      Alert.alert("Update failed", error.message);
+    } else {
+      Alert.alert(next ? "Pinned! ★" : "Unpinned", next ? "This Frame is pinned permanently to your profile grid." : "This Frame will now archive once its 24h feed time expires.");
+    }
   };
 
   const togglePrivacy = async () => {
     const nextPrivacy = post.privacy === "PUBLIC" ? "FRIENDS" : "PUBLIC";
     mergePosts([{ ...post, privacy: nextPrivacy }]);
     setOptionsVisible(false);
-    const { post: updated } = await updateRemotePostPrivacy(post.id, nextPrivacy);
+    const { post: updated, error } = await updateRemotePostPrivacy(post.id, nextPrivacy);
     if (updated) mergePosts([updated]);
+    if (error) {
+      Alert.alert("Update failed", error.message);
+    } else {
+      Alert.alert("Privacy Updated", nextPrivacy === "PUBLIC" ? "Frame is now Public 🌍" : "Frame is now Friends Only 🔒");
+    }
   };
 
   const confirmDelete = () => {
@@ -128,30 +138,46 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
         <Pressable style={styles.modalOverlay} onPress={() => setOptionsVisible(false)}>
           <View style={styles.actionSheet}>
             <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>Frame Options</Text>
+            <Text style={styles.sheetTitle}>Frame Settings</Text>
 
-            <Pressable style={styles.sheetItem} onPress={toggleFeatured}>
+            <Pressable style={styles.sheetItem} onPress={() => { void toggleFeatured(); }}>
               <AppIcon name="spark" color={palette.ink} size={20} />
-              <Text style={styles.sheetItemText}>
-                {post.profileFeatured ? "Unpin from Profile Grid" : "★ Pin & Keep on Profile Grid"}
-              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.sheetItemText}>
+                  {post.profileFeatured ? "Unpin from Profile Grid" : "★ Pin to Profile Grid"}
+                </Text>
+                <Text style={styles.sheetItemSub}>
+                  {post.profileFeatured ? "Reverts to regular 24h lifespan" : "Keeps Frame on your profile permanently"}
+                </Text>
+              </View>
             </Pressable>
 
-            <Pressable style={styles.sheetItem} onPress={togglePrivacy}>
+            <Pressable style={styles.sheetItem} onPress={() => { void togglePrivacy(); }}>
               <AppIcon name="lock" color={palette.ink} size={20} />
-              <Text style={styles.sheetItemText}>
-                {post.privacy === "PUBLIC" ? "Switch to Friends Only 🔒" : "Switch to Public 🌍"}
-              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.sheetItemText}>
+                  {post.privacy === "PUBLIC" ? "Change to Friends Only 🔒" : "Change to Public 🌍"}
+                </Text>
+                <Text style={styles.sheetItemSub}>
+                  Currently: {post.privacy === "PUBLIC" ? "Visible to everyone" : "Only your accepted friends"}
+                </Text>
+              </View>
             </Pressable>
 
             <Pressable style={styles.sheetItem} onPress={() => { setOptionsVisible(false); setForwardVisible(true); }}>
               <AppIcon name="send" color={palette.ink} size={20} />
-              <Text style={styles.sheetItemText}>Forward to Friends</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.sheetItemText}>Forward to Friends</Text>
+                <Text style={styles.sheetItemSub}>Send this Frame in a direct chat</Text>
+              </View>
             </Pressable>
 
             <Pressable style={[styles.sheetItem, styles.sheetItemDelete]} onPress={confirmDelete}>
               <AppIcon name="delete" color="#B8324A" size={20} />
-              <Text style={[styles.sheetItemText, styles.deleteText]}>Delete Frame</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.sheetItemText, styles.deleteText]}>Delete Frame</Text>
+                <Text style={[styles.sheetItemSub, styles.deleteSub]}>Permanently delete this Frame</Text>
+              </View>
             </Pressable>
 
             <Pressable style={styles.sheetCancel} onPress={() => setOptionsVisible(false)}>
@@ -251,10 +277,12 @@ const styles = StyleSheet.create({
   actionSheet: { backgroundColor: palette.whitePaper, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 36, gap: 10 },
   sheetHandle: { width: 44, height: 5, borderRadius: 3, backgroundColor: "#D4C8B8", alignSelf: "center", marginBottom: 8 },
   sheetTitle: { fontSize: 18, fontWeight: "900", color: palette.ink, marginBottom: 6 },
-  sheetItem: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 14, paddingHorizontal: 12, borderRadius: 12, backgroundColor: palette.paperCream },
+  sheetItem: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 12, backgroundColor: palette.paperCream },
   sheetItemDelete: { backgroundColor: "#FDF0F0" },
-  sheetItemText: { fontSize: 15, fontWeight: "800", color: palette.ink },
+  sheetItemText: { fontSize: 15, fontWeight: "900", color: palette.ink },
+  sheetItemSub: { fontSize: 12, color: palette.mutedBrown, fontWeight: "700", marginTop: 2 },
   deleteText: { color: "#B8324A" },
+  deleteSub: { color: "#C05621" },
   sheetCancel: { alignItems: "center", paddingVertical: 14, borderRadius: 12, marginTop: 6, backgroundColor: palette.paperCream },
   sheetCancelText: { fontSize: 15, fontWeight: "900", color: palette.mutedBrown },
   noFriends: { padding: 18, alignItems: "center", gap: 6 },
