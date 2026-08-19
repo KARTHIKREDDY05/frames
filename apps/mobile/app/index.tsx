@@ -84,8 +84,18 @@ export default function Index() {
             <Pressable style={[styles.navButton, activeStep === 0 && styles.navButtonMuted]} onPress={() => setActiveStep((step) => Math.max(0, step - 1))} disabled={activeStep === 0}>
               <Text style={styles.navButtonText}>Back</Text>
             </Pressable>
-            <Pressable style={styles.navButton} onPress={() => activeStep === steps.length - 1 ? undefined : setActiveStep((step) => Math.min(steps.length - 1, step + 1))} disabled={activeStep === steps.length - 1}>
-              <Text style={styles.navButtonText}>{activeStep === steps.length - 1 ? "Ready" : "Next"}</Text>
+            <Pressable
+              style={styles.navButton}
+              onPress={() => {
+                if (activeStep === steps.length - 1) {
+                  completeIntro();
+                  router.replace("/(tabs)/home");
+                } else {
+                  setActiveStep((step) => Math.min(steps.length - 1, step + 1));
+                }
+              }}
+            >
+              <Text style={styles.navButtonText}>{activeStep === steps.length - 1 ? "Get Started ›" : "Next"}</Text>
             </Pressable>
           </View>
           {activeStep === steps.length - 1 ? (

@@ -66,7 +66,7 @@ export default function Notifications() {
       <Text style={styles.title}>Notifications</Text>
       <View style={styles.toolbar}>
         <Pressable style={styles.markRead} onPress={markRead}><AppIcon name="check" color={palette.ink} size={18} /><Text style={styles.markReadText}>Mark read</Text></Pressable>
-        <Pressable style={styles.markRead} onPress={() => { void load(); }}><AppIcon name="search" color={palette.ink} size={18} /><Text style={styles.markReadText}>Refresh</Text></Pressable>
+        <Pressable style={styles.markRead} onPress={() => { void load(); }}><Text style={styles.markReadText}>Refresh</Text></Pressable>
       </View>
       {message ? <Text style={styles.empty}>{message}</Text> : null}
       {requests.some((request) => request.status === "PENDING" && request.receiverId === currentUser?.id) ? <Text style={styles.section}>Follow requests</Text> : null}

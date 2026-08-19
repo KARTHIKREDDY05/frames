@@ -70,8 +70,26 @@ export default function Login() {
         <Text style={styles.title}>Welcome back</Text>
         <TextInput placeholder="Email" style={styles.input} value={email} onChangeText={setEmail} autoCapitalize="none" />
         <TextInput placeholder="Password" style={styles.input} value={password} onChangeText={setPassword} secureTextEntry />
-        {error ? <Text style={styles.error}>{error}</Text> : null}
         <FrameButton icon="check" label={loading ? "Signing In..." : "Sign In"} onPress={() => { void login(); }} />
+        <FrameButton
+          icon="spark"
+          label="Explore as Guest"
+          variant="secondary"
+          onPress={() => {
+            setCurrentUser({
+              id: "user-demo",
+              username: "karthik",
+              displayName: "Karthik Reddy",
+              email: "reddykarthik370@gmail.com",
+              avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400",
+              bio: "Collecting everyday moments & memories 📸",
+              defaultPrivacy: "FRIENDS",
+              profileVisibility: "PUBLIC"
+            });
+            completeIntro();
+            router.replace("/(tabs)/home");
+          }}
+        />
         {oauthProviders.filter((provider) => shouldShowOAuthProvider(provider.id)).map((provider) => (
           <FrameButton
             key={provider.id}
