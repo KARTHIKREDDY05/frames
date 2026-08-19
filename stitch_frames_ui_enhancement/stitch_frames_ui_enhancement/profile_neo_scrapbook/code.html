@@ -1,0 +1,255 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Frames - User Profile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&amp;family=Hanken+Grotesk:wght@500&amp;family=JetBrains+Mono:wght@600;700&amp;family=Caveat:wght@400..700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "electric-ink": "#000000",
+                        "tertiary-container": "#f2f1f1",
+                        "background": "#fff9ef",
+                        "inverse-primary": "#b8d325",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f9f3ea",
+                        "surface-dim": "#dfd9d1",
+                        "soft-lavender": "#E6E6FA",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "outline-variant": "#c6c9af",
+                        "tertiary": "#5d5e5f",
+                        "on-primary-container": "#647500",
+                        "secondary": "#5c5d6e",
+                        "outline": "#767963",
+                        "inverse-surface": "#32302a",
+                        "surface-tint": "#566500",
+                        "secondary-fixed": "#e1e1f5",
+                        "on-surface": "#1d1b16",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "secondary-fixed-dim": "#c5c5d8",
+                        "surface-variant": "#e7e2d9",
+                        "y2k-silver": "#D1D1D1",
+                        "on-secondary-fixed": "#191b29",
+                        "secondary-container": "#e1e1f5",
+                        "inverse-on-surface": "#f6f0e7",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed": "#181e00",
+                        "surface-container-high": "#ede7de",
+                        "primary-container": "#e2ff52",
+                        "surface-container": "#f3ede4",
+                        "primary": "#566500",
+                        "surface-container-highest": "#e7e2d9",
+                        "surface-container-lowest": "#ffffff",
+                        "acid-yellow": "#E2FF52",
+                        "primary-fixed-dim": "#b8d325",
+                        "primary-fixed": "#d3f043",
+                        "surface": "#fff9ef",
+                        "on-error-container": "#93000a",
+                        "on-background": "#1d1b16",
+                        "tertiary-fixed": "#e2e2e2",
+                        "on-secondary-fixed-variant": "#444655",
+                        "tertiary-fixed-dim": "#c6c6c6",
+                        "on-tertiary": "#ffffff",
+                        "paper-cream": "#F6F0E7",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#626374",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#fff9ef",
+                        "on-surface-variant": "#464835",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#404c00",
+                        "on-tertiary-container": "#6c6e6e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "unit": "4px",
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "stack-loose": "32px",
+                        "border-thin": "1px",
+                        "stack-tight": "8px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Bricolage Grotesque"],
+                        "display-lg": ["Bricolage Grotesque"],
+                        "label-caps": ["JetBrains Mono"],
+                        "metadata-stamped": ["JetBrains Mono"],
+                        "headline-lg": ["Bricolage Grotesque"],
+                        "handwriting": ["Caveat", "cursive"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "display-lg": ["56px", {"lineHeight": "52px", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                        "label-caps": ["10px", {"lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "metadata-stamped": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .washi-tape {
+            background-color: rgba(230, 230, 250, 0.8);
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+            position: absolute;
+            z-index: 20;
+            clip-path: polygon(0 0, 100% 2%, 98% 100%, 2% 98%);
+        }
+        .washi-tape-yellow {
+            background-color: rgba(226, 255, 82, 0.8);
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+            position: absolute;
+            z-index: 20;
+            clip-path: polygon(1% 1%, 99% 0, 100% 99%, 0 100%);
+        }
+        .torn-paper {
+            clip-path: polygon(0 2%, 100% 0, 98% 100%, 2% 98%);
+        }
+        
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-paper-cream text-electric-ink font-body-md min-h-screen pb-24 selection:bg-acid-yellow selection:text-electric-ink">
+<!-- Organic Header -->
+<header class="fixed top-0 w-full z-50 bg-paper-cream/90 backdrop-blur-sm dark:bg-electric-ink/90 text-electric-ink dark:text-paper-cream border-b-2 border-dashed border-soft-lavender dark:border-paper-cream flex justify-between items-center px-margin-mobile h-20 w-full shadow-[0_4px_0_0_rgba(230,230,250,1)]">
+<div class="flex items-center gap-2 transform -rotate-2 bg-white px-3 py-1 border-2 border-electric-ink shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+<span class="material-symbols-outlined text-[24px]">token</span>
+<span class="text-headline-lg-mobile font-headline-lg-mobile font-black text-electric-ink dark:text-acid-yellow tracking-tighter">FRAMES</span>
+</div>
+<button class="w-12 h-12 flex items-center justify-center border-2 border-electric-ink rounded-full bg-soft-lavender shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-acid-yellow hover:text-electric-ink transition-colors active:transform active:-rotate-6 active:scale-90 duration-150 rotate-3">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-28 px-margin-mobile max-w-4xl mx-auto space-y-stack-loose relative">
+<!-- Decorative bg elements -->
+<div class="absolute top-40 right-10 w-24 h-24 bg-soft-lavender rounded-full opacity-50 blur-xl pointer-events-none"></div>
+<div class="absolute top-60 left-4 w-16 h-16 bg-acid-yellow rounded-full opacity-50 blur-xl pointer-events-none"></div>
+<!-- Profile Header -->
+<section class="flex flex-col items-center text-center space-y-stack-tight relative mt-4">
+<div class="relative inline-block mb-6 p-4">
+<!-- Washi Tape -->
+<div class="washi-tape top-2 left-1/2 -translate-x-1/2 w-24 h-8 transform rotate-3 border border-electric-ink/30"></div>
+<div class="washi-tape-yellow bottom-4 -left-6 w-16 h-6 transform -rotate-12 border border-electric-ink/30"></div>
+<div class="w-36 h-36 border-2 border-electric-ink bg-white p-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transform -rotate-2 hover:rotate-1 transition-transform duration-300 z-10 relative">
+<img class="w-full h-full object-cover torn-paper border border-electric-ink/20" data-alt="A striking digital portrait photography of a stylish young individual with a high-energy Gen-Z aesthetic, captured against a minimalist light-mode background. The subject is wearing vibrant, textured clothing that contrasts sharply with the pale surroundings. Lighting is bright and even, highlighting the physical, analog-like quality of the image. The overall mood is confident and creative, fitting a premium neo-brutalist digital scrapbook." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCV7VrNKdttQzS9d-Hwm4HYbFfeHjme14eDpmSbCmnr_Y1zxGQ_yDsBElfgylkCsn5B6OeyMszZqDSFEodunsFWURv86r6neJro7teAa-PksiDgbD5977cts61-gzNZD3i4DElqnoY1UiVQOd1DnVz6HpYADqH45mGn6JI_FbDhfwFbQPm2PtRzsPqzNiX3NRcFO6enzSP1ztMYWsHqx2avrG769GzhRz8R-fZH_NsytxxOg1rcQQf-">
+</div>
+<!-- Verified Sticker -->
+<div class="absolute -bottom-4 right-0 bg-soft-lavender text-electric-ink border-2 border-electric-ink px-3 py-1.5 rotate-[8deg] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] font-label-caps text-label-caps z-20 flex items-center gap-1 hover:rotate-[12deg] transition-transform cursor-pointer"><span class="material-symbols-outlined text-[14px] icon-fill">verified</span>VERIFIED</div>
+</div>
+<div class="mt-4 transform rotate-1 bg-white border border-electric-ink px-6 py-2 shadow-[2px_2px_0px_0px_rgba(230,230,250,1)]"><div class="absolute -top-4 -right-4 w-16 h-6 z-20 pointer-events-none overflow-hidden"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvXtFw9QzjqcHUlVxckMLb4gSKQUKIyiTA7QAEdVJotERQAdZGz9tLyOk7wi02YGbtXvNEBSIVF4pb0aUMDQPcQ7hBUjkWLtqeefCMp3Sn2jIQhHf0pzzHuILYsF5xEehxFehPBKv4tkh9l5O6xOw1rjqleeJ8yjEB50PRbkwRAkWQ6xnyvNFP8MqOlAQZw3kgdiHYE7-LCAHMOc7b1C-AxrDlp1u9B53nLWWpy2Sh0zjf_D67KuV7wmA" class="w-full h-full object-cover scale-150 rotate-12 opacity-80" style="clip-path: inset(15% 0 65% 50%)"></div>
+<h1 class="font-headline-lg-mobile text-[32px] text-electric-ink uppercase tracking-tighter">Alex Chen</h1>
+<p class="font-metadata-stamped text-metadata-stamped text-tertiary bg-soft-lavender/30 inline-block px-2">@alexc_frames</p>
+</div>
+<div class="relative w-full max-w-md mx-auto mt-6">
+<div class="absolute -left-2 top-0 bottom-0 w-1 bg-soft-lavender transform rotate-1"></div>
+<p class="text-electric-ink font-handwriting text-[24px] leading-tight text-center px-4 transform -rotate-1">
+                Capturing the noise. Digital scrapbooker &amp; analog enthusiast. 📸✨
+            </p>
+</div>
+<!-- Stats -->
+<div class="flex gap-6 mt-8 justify-center w-full">
+<div class="border-2 border-electric-ink bg-white px-5 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center min-w-[110px] hover:bg-soft-lavender transition-colors cursor-pointer -rotate-3 hover:-translate-y-1">
+<span class="font-metadata-stamped text-[24px] font-bold">1.2K</span>
+<span class="font-label-caps text-label-caps text-secondary tracking-widest mt-1">FOLLOWERS</span>
+</div>
+<div class="border-2 border-electric-ink bg-white px-5 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center min-w-[110px] hover:bg-acid-yellow transition-colors cursor-pointer rotate-2 hover:-translate-y-1">
+<span class="font-metadata-stamped text-[24px] font-bold">842</span>
+<span class="font-label-caps text-label-caps text-secondary tracking-widest mt-1">FOLLOWING</span>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex gap-4 mt-8 w-full max-w-sm justify-center">
+<button class="flex-1 bg-acid-yellow border-2 border-electric-ink text-electric-ink font-label-caps text-label-caps py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-y-[3px] active:translate-x-[3px] transition-all uppercase transform rotate-1">
+                    Edit Profile
+                </button>
+<button class="w-14 h-14 flex items-center justify-center bg-soft-lavender border-2 border-electric-ink text-electric-ink shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-y-[3px] active:translate-x-[3px] transition-all transform -rotate-2 rounded-full">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+</section>
+<!-- Grid Section -->
+<section class="mt-12 bg-white/50 border-2 border-dashed border-electric-ink/20 p-4 -mx-2 md:mx-0 shadow-inner">
+<div class="flex justify-between items-end mb-6 border-b-4 border-electric-ink pb-3 px-2">
+<h2 class="font-headline-lg-mobile text-[28px] uppercase tracking-tighter transform -rotate-1 bg-electric-ink text-paper-cream px-2 border border-electric-ink inline-block">Frames Box</h2>
+<div class="flex gap-3 font-label-caps text-label-caps">
+<button class="bg-electric-ink text-paper-cream px-4 py-2 border-2 border-electric-ink uppercase shadow-[2px_2px_0px_0px_rgba(230,230,250,1)] transform rotate-1">Active</button>
+<button class="text-electric-ink px-4 py-2 border-2 border-electric-ink bg-white hover:bg-soft-lavender transition-colors uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transform -rotate-1 bg-soft-lavender">Archive</button>
+</div>
+</div>
+<!-- Physical Tray Grid -->
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 p-2">
+<!-- Item 1 -->
+<div class="aspect-square border-[8px] border-white border-b-[24px] relative group cursor-pointer shadow-[4px_4px_8px_rgba(0,0,0,0.3)] hover:shadow-[6px_6px_12px_rgba(0,0,0,0.4)] transition-all transform -rotate-3 hover:rotate-0 z-10 hover:z-30">
+<img class="w-full h-full object-cover border border-electric-ink/10" data-alt="A vivid snapshot of urban street culture featuring a blurred, kinetic motion of a skateboarder executing a trick against a stark concrete backdrop. The scene is illuminated by harsh, direct flash lighting typical of 90s zine photography, casting deep, sharp shadows. The color palette is minimal, focusing on raw textures of concrete and metal, accented by a bright acid-yellow detail on the skateboard. The aesthetic is raw, unpolished, and high-energy." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQ2_5vo3Icc5gOfQfEUhLmIyuNm1xv6O0RjGoZzGiKD8Pbzg9akqajTyAuvdiX66h4jyD7DJrqjF74GrtQ-QP7PfkHz5yP4tdd8prVdgk3JLfZPpk3pgumxWpJKdKpGvTbOAI72lYjfUeRPzCABSmmSc1oD1nc0TPKVQSpJY8g34lg5-zO_rz-4vDejRYZM604WYvJv8NU61RpF3oqVjN0XMSER2i149FhIvMSjQ8v3VSHplhvvlGT">
+<div class="absolute top-2 right-2 bg-acid-yellow text-electric-ink border-2 border-electric-ink px-2 py-1 font-label-caps text-[10px] uppercase rotate-[6deg] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                        PINNED
+                    </div>
+<div class="absolute -top-4 left-4 w-12 h-6 washi-tape transform rotate-12 border border-electric-ink/10"></div>
+</div>
+<!-- Item 2 -->
+<div class="aspect-[4/5] border-[8px] border-white border-b-[24px] relative group cursor-pointer shadow-[4px_4px_8px_rgba(0,0,0,0.3)] hover:shadow-[6px_6px_12px_rgba(0,0,0,0.4)] transition-all transform rotate-2 hover:rotate-0 mt-4 -ml-2 z-20 hover:z-30">
+<img class="w-full h-full object-cover border border-electric-ink/10" data-alt="A close-up abstract detail of a vintage boombox cassette deck, captured with a macro lens. The image highlights the tactile, analog buttons and the rough texture of the plastic casing. The lighting is moody but bright enough to emphasize the physical, scrapbook-like quality of the object. The color palette is dominated by muted silvers and blacks, providing a stark contrast that fits perfectly within a neo-brutalist digital layout." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC55w_X0iprhnNFsI2DIS3MNdpD-0hOStW2npsoHp_Sqc54iu6QJCzIzQLAGNhCP5pvN1fD39cuHiaT3818vKiTjrqFIjM3N36DgM_BWLBYqvnjQ-76AmX8GXEkXLeA1vepGgaG08EZV0bQirdDJ1Sl5VdBvs1syW9ex8R2HoySVillHrZtC2Y9AkXuj5diR2DT-mS8BjNiyK9Y58Jw_ycnqQmUe0ikJmiyheCSmzMB74DNc5yRnjTI">
+<div class="absolute -top-2 -left-4 w-14 h-6 z-20 pointer-events-none overflow-hidden transform -rotate-12"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvXtFw9QzjqcHUlVxckMLb4gSKQUKIyiTA7QAEdVJotERQAdZGz9tLyOk7wi02YGbtXvNEBSIVF4pb0aUMDQPcQ7hBUjkWLtqeefCMp3Sn2jIQhHf0pzzHuILYsF5xEehxFehPBKv4tkh9l5O6xOw1rjqleeJ8yjEB50PRbkwRAkWQ6xnyvNFP8MqOlAQZw3kgdiHYE7-LCAHMOc7b1C-AxrDlp1u9B53nLWWpy2Sh0zjf_D67KuV7wmA" class="w-full h-full object-cover scale-150 opacity-80" style="clip-path: inset(15% 0 65% 50%)"></div></div>
+<!-- Item 3 -->
+<div class="aspect-square border-[8px] border-white border-b-[24px] relative group cursor-pointer shadow-[4px_4px_8px_rgba(0,0,0,0.3)] hover:shadow-[6px_6px_12px_rgba(0,0,0,0.4)] transition-all transform -rotate-1 hover:rotate-2 -mt-2 -ml-4 z-10 hover:z-30">
+<img class="w-full h-full object-cover border border-electric-ink/10" data-alt="An atmospheric wide shot of an empty, neon-lit laundromat at night. The artificial lighting creates strong, architectural shadows and highlights the geometric layout of the washing machines. The scene feels slightly surreal and cinematic, captured with a grainy, high-contrast film aesthetic. The color palette features pale paper-cream tones clashing with cold, electric-ink blues, embodying a raw, authentic Gen-Z visual narrative." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4F_JR4LSAm1Qgjb0wWalR1nJg_FPD_cMXSt8dfxG6Esqrcd6PzB7pGOU-ecAFDckY34mFzOusJT6D4WSGGgTt_RmppI0aTjooOVQrQl9aSg8KlBROqQ00DeIyYOy2EVRbk3fjFBituBlYcl-udRAaaeTyDsfrQEYWPQ0licgdZ3jTmRWO9qhjVoT-2f_B1F3On6UYMPWINPUg5kptKM_HYAdDRZhRsPaPrMGRlILDtnADi-g2FSqm">
+<div class="absolute bottom-4 left-2 bg-soft-lavender text-electric-ink border-2 border-electric-ink px-2 py-1 font-label-caps text-[10px] uppercase -rotate-[5deg] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                        KEPT
+                    </div>
+<div class="absolute -top-3 -right-2 w-16 h-8 washi-tape-yellow z-10 border border-electric-ink/10 transform rotate-45"></div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center h-20 px-2 bg-paper-cream dark:bg-electric-ink border-t-2 border-dashed border-electric-ink dark:border-paper-cream z-50 pb-safe md:hidden shadow-[0_-4px_0_0_rgba(230,230,250,1)]">
+<button class="flex flex-col items-center justify-center text-secondary dark:text-y2k-silver px-3 py-1 hover:bg-soft-lavender dark:hover:bg-secondary transition-all rounded-lg">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-label-caps mt-1">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary dark:text-y2k-silver px-3 py-1 hover:bg-soft-lavender dark:hover:bg-secondary transition-all rounded-lg">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-label-caps text-label-caps mt-1">Feed</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary dark:text-y2k-silver px-3 py-1 hover:bg-soft-lavender dark:hover:bg-secondary transition-all rounded-lg">
+<span class="material-symbols-outlined">photo_camera</span>
+<span class="font-label-caps text-label-caps mt-1">Camera</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary dark:text-y2k-silver px-3 py-1 hover:bg-soft-lavender dark:hover:bg-secondary transition-all rounded-lg">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-caps text-label-caps mt-1">Archive</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-acid-yellow text-electric-ink border-2 border-electric-ink px-4 py-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:scale-90 duration-100 transform -rotate-2">
+<span class="material-symbols-outlined icon-fill">person</span>
+<span class="font-label-caps text-label-caps mt-1">Profile</span>
+</button>
+</nav>
+
+
+</body></html>

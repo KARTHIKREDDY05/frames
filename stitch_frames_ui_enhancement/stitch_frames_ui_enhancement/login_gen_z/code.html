@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Frames - Login</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&amp;family=Hanken+Grotesk:wght@500&amp;family=JetBrains+Mono:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "electric-ink": "#000000",
+                      "tertiary-container": "#f2f1f1",
+                      "background": "#fff9ef",
+                      "inverse-primary": "#b8d325",
+                      "on-primary": "#ffffff",
+                      "surface-container-low": "#f9f3ea",
+                      "surface-dim": "#dfd9d1",
+                      "soft-lavender": "#E6E6FA",
+                      "on-tertiary-fixed": "#1a1c1c",
+                      "outline-variant": "#c6c9af",
+                      "tertiary": "#5d5e5f",
+                      "on-primary-container": "#647500",
+                      "secondary": "#5c5d6e",
+                      "outline": "#767963",
+                      "inverse-surface": "#32302a",
+                      "surface-tint": "#566500",
+                      "secondary-fixed": "#e1e1f5",
+                      "on-surface": "#1d1b16",
+                      "on-tertiary-fixed-variant": "#454747",
+                      "secondary-fixed-dim": "#c5c5d8",
+                      "surface-variant": "#e7e2d9",
+                      "y2k-silver": "#D1D1D1",
+                      "on-secondary-fixed": "#191b29",
+                      "secondary-container": "#e1e1f5",
+                      "inverse-on-surface": "#f6f0e7",
+                      "on-error": "#ffffff",
+                      "on-primary-fixed": "#181e00",
+                      "surface-container-high": "#ede7de",
+                      "primary-container": "#e2ff52",
+                      "surface-container": "#f3ede4",
+                      "primary": "#566500",
+                      "surface-container-highest": "#e7e2d9",
+                      "surface-container-lowest": "#ffffff",
+                      "acid-yellow": "#E2FF52",
+                      "primary-fixed-dim": "#b8d325",
+                      "primary-fixed": "#d3f043",
+                      "surface": "#fff9ef",
+                      "on-error-container": "#93000a",
+                      "on-background": "#1d1b16",
+                      "tertiary-fixed": "#e2e2e2",
+                      "on-secondary-fixed-variant": "#444655",
+                      "tertiary-fixed-dim": "#c6c6c6",
+                      "on-tertiary": "#ffffff",
+                      "paper-cream": "#F6F0E7",
+                      "error-container": "#ffdad6",
+                      "on-secondary-container": "#626374",
+                      "error": "#ba1a1a",
+                      "surface-bright": "#fff9ef",
+                      "on-surface-variant": "#464835",
+                      "on-secondary": "#ffffff",
+                      "on-primary-fixed-variant": "#404c00",
+                      "on-tertiary-container": "#6c6e6e"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "gutter": "16px",
+                      "unit": "4px",
+                      "margin-desktop": "32px",
+                      "margin-mobile": "16px",
+                      "stack-loose": "32px",
+                      "border-thin": "1px",
+                      "stack-tight": "8px"
+              },
+              "fontFamily": {
+                      "body-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "headline-lg-mobile": [
+                              "Bricolage Grotesque"
+                      ],
+                      "display-lg": [
+                              "Bricolage Grotesque"
+                      ],
+                      "label-caps": [
+                              "JetBrains Mono"
+                      ],
+                      "metadata-stamped": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-lg": [
+                              "Bricolage Grotesque"
+                      ]
+              },
+              "fontSize": {
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "26px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "28px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "display-lg": [
+                              "56px",
+                              {
+                                      "lineHeight": "52px",
+                                      "letterSpacing": "-0.04em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "label-caps": [
+                              "10px",
+                              {
+                                      "lineHeight": "12px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "metadata-stamped": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.1em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "36px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "800"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+</head>
+<body class="bg-paper-cream text-electric-ink font-body-md selection:bg-acid-yellow selection:text-electric-ink min-h-screen flex items-center justify-center overflow-x-hidden relative">
+<!-- Decorative Washi Tape -->
+<div class="fixed top-12 left-8 w-24 h-6 bg-soft-lavender opacity-60 -rotate-[12deg] mix-blend-multiply pointer-events-none z-0"></div>
+<div class="fixed bottom-20 right-10 w-32 h-8 bg-acid-yellow opacity-40 rotate-[5deg] mix-blend-multiply pointer-events-none z-0"></div>
+<!-- Main Content Canvas -->
+<main class="w-full max-w-md px-margin-mobile md:px-margin-desktop relative z-10">
+<!-- App Brand Stamped -->
+<div class="mb-stack-loose text-center md:text-left flex items-center justify-center md:justify-start gap-2">
+<span class="material-symbols-outlined text-electric-ink text-4xl" style="font-variation-settings: 'FILL' 1;">token</span>
+<span class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg uppercase tracking-tighter">Frames</span>
+</div>
+<!-- Scrapbook 'Card' Container -->
+<div class="relative bg-paper-cream border border-electric-ink p-6 md:p-8 transform rotate-1 hover:rotate-0 transition-transform duration-300">
+<!-- Corner Sticker Accent -->
+<div class="absolute -top-3 -right-3 w-8 h-8 bg-soft-lavender border border-electric-ink shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center -rotate-[15deg]">
+<span class="material-symbols-outlined text-sm">asterisk</span>
+</div>
+<!-- Headers -->
+<div class="mb-8">
+<h1 class="font-display-lg text-display-lg uppercase leading-none break-words hyphens-auto">WELCOME<br/>BACK</h1>
+</div>
+<!-- Form -->
+<form action="#" class="flex flex-col gap-stack-loose" method="POST">
+<div class="flex flex-col gap-4">
+<!-- Email Input -->
+<div class="relative w-full border border-electric-ink bg-paper-cream focus-within:bg-soft-lavender/30 focus-within:border-[2px] transition-all group pt-2 px-3 pb-1">
+<label class="absolute top-1 left-2 font-label-caps text-label-caps text-secondary uppercase" for="email">Email Address</label>
+<input class="w-full bg-transparent border-none p-0 mt-3 font-body-lg text-body-lg text-electric-ink focus:ring-0 placeholder:text-secondary/50 placeholder:font-body-md" id="email" name="email" placeholder="you@domain.com" required="" type="email"/>
+</div>
+<!-- Password Input -->
+<div class="relative w-full border border-electric-ink bg-paper-cream focus-within:bg-soft-lavender/30 focus-within:border-[2px] transition-all group pt-2 px-3 pb-1">
+<label class="absolute top-1 left-2 font-label-caps text-label-caps text-secondary uppercase" for="password">Password</label>
+<input class="w-full bg-transparent border-none p-0 mt-3 font-body-lg text-body-lg text-electric-ink focus:ring-0 placeholder:text-secondary/50 placeholder:font-body-md" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+</div>
+</div>
+<!-- Primary Action -->
+<button class="w-full bg-acid-yellow border border-electric-ink shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] py-4 font-label-caps text-label-caps uppercase text-electric-ink hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all cursor-pointer" type="submit">
+                    Sign In
+                </button>
+</form>
+<!-- Divider -->
+<div class="relative flex py-6 items-center">
+<div class="flex-grow border-t border-electric-ink"></div>
+<span class="flex-shrink-0 mx-4 font-label-caps text-label-caps text-secondary uppercase">OR</span>
+<div class="flex-grow border-t border-electric-ink"></div>
+</div>
+<!-- Secondary Action -->
+<button class="w-full bg-paper-cream border border-electric-ink py-4 px-4 font-label-caps text-label-caps uppercase text-electric-ink flex items-center justify-center gap-3 hover:bg-surface-dim transition-colors cursor-pointer group" type="button">
+<span class="material-symbols-outlined text-lg group-hover:-rotate-12 transition-transform">globe</span>
+                Continue with Google
+            </button>
+</div>
+<!-- Footer Stamped Meta -->
+<div class="mt-8 text-center">
+<a class="font-metadata-stamped text-metadata-stamped uppercase text-secondary hover:text-electric-ink hover:underline decoration-2 underline-offset-4 transition-colors" href="#">
+                New to Frames? Create an account
+            </a>
+</div>
+</main>
+</body></html>

@@ -38,9 +38,17 @@ export default function PublicFeed() {
         keyExtractor={(item) => item.id}
         ListHeaderComponent={
           <View style={styles.header}>
-            <Text style={styles.kicker}>PUBLIC FRAMES</Text>
-            <Text style={styles.title}>Feed</Text>
-            <Text style={styles.copy}>Discover public moments. Friends-only Frames stay private until a request is accepted.</Text>
+            <View style={styles.brandRow}>
+              <View style={styles.brandBadge}><Text style={styles.brandBadgeText}>FRAMES</Text></View>
+              <View style={styles.stampedDateBadge}>
+                <Text style={styles.stampedDateText}>
+                  {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase()}
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.kicker}>COMMUNITY DISCOVERY</Text>
+            <Text style={styles.title}>Public Feed</Text>
+            <Text style={styles.copy}>Explore public moments from around the world. Friends-only Frames stay protected.</Text>
           </View>
         }
         ListEmptyComponent={
@@ -58,14 +66,19 @@ export default function PublicFeed() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 18, gap: 18, paddingBottom: 110 },
-  header: { gap: 6, paddingTop: 18 },
-  kicker: { color: palette.mutedBrown, fontSize: 12, fontWeight: "900" },
-  title: { color: palette.ink, fontSize: 34, fontWeight: "900" },
-  copy: { color: palette.mutedBrown, fontSize: 15, lineHeight: 22 },
-  empty: { gap: 12, paddingTop: 110 },
-  emptyTitle: { color: palette.ink, fontSize: 28, fontWeight: "900" },
-  emptyCopy: { color: palette.mutedBrown, fontSize: 16, lineHeight: 23 }
+  content: { padding: 16, gap: 16, paddingBottom: 110 },
+  header: { gap: 6, paddingTop: 16 },
+  brandRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 4 },
+  brandBadge: { backgroundColor: palette.ink, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, transform: [{ rotate: "-2deg" }] },
+  brandBadgeText: { color: palette.acidYellow, fontSize: 11, fontWeight: "900", letterSpacing: 1 },
+  stampedDateBadge: { backgroundColor: palette.softLavender, borderWidth: 1.5, borderColor: palette.ink, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 2 },
+  stampedDateText: { fontSize: 10, fontWeight: "900", color: palette.ink, letterSpacing: 0.8 },
+  kicker: { color: palette.mutedBrown, fontSize: 11, fontWeight: "900", letterSpacing: 0.5 },
+  title: { color: palette.ink, fontSize: 30, fontWeight: "900" },
+  copy: { color: palette.mutedBrown, fontSize: 14, lineHeight: 20 },
+  empty: { gap: 12, paddingTop: 80 },
+  emptyTitle: { color: palette.ink, fontSize: 26, fontWeight: "900" },
+  emptyCopy: { color: palette.mutedBrown, fontSize: 15, lineHeight: 22 }
 });
 
 function isActiveFrame(expiresAt: string) {

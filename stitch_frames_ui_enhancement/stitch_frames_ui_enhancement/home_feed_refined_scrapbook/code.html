@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Frames - Home Feed</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&amp;family=Hanken+Grotesk:wght@500&amp;family=JetBrains+Mono:wght@600;700&amp;family=Caveat:wght@400..700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "electric-ink": "#000000",
+                        "tertiary-container": "#f2f1f1",
+                        "background": "#fff9ef",
+                        "inverse-primary": "#b8d325",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f9f3ea",
+                        "surface-dim": "#dfd9d1",
+                        "soft-lavender": "#E6E6FA",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "outline-variant": "#c6c9af",
+                        "tertiary": "#5d5e5f",
+                        "on-primary-container": "#647500",
+                        "secondary": "#5c5d6e",
+                        "outline": "#767963",
+                        "inverse-surface": "#32302a",
+                        "surface-tint": "#566500",
+                        "secondary-fixed": "#e1e1f5",
+                        "on-surface": "#1d1b16",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "secondary-fixed-dim": "#c5c5d8",
+                        "surface-variant": "#e7e2d9",
+                        "y2k-silver": "#D1D1D1",
+                        "on-secondary-fixed": "#191b29",
+                        "secondary-container": "#e1e1f5",
+                        "inverse-on-surface": "#f6f0e7",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed": "#181e00",
+                        "surface-container-high": "#ede7de",
+                        "primary-container": "#e2ff52",
+                        "surface-container": "#f3ede4",
+                        "primary": "#566500",
+                        "surface-container-highest": "#e7e2d9",
+                        "surface-container-lowest": "#ffffff",
+                        "acid-yellow": "#E2FF52",
+                        "primary-fixed-dim": "#b8d325",
+                        "primary-fixed": "#d3f043",
+                        "surface": "#fff9ef",
+                        "on-error-container": "#93000a",
+                        "on-background": "#1d1b16",
+                        "tertiary-fixed": "#e2e2e2",
+                        "on-secondary-fixed-variant": "#444655",
+                        "tertiary-fixed-dim": "#c6c6c6",
+                        "on-tertiary": "#ffffff",
+                        "paper-cream": "#F6F0E7",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#626374",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#fff9ef",
+                        "on-surface-variant": "#464835",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#404c00",
+                        "on-tertiary-container": "#6c6e6e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "unit": "4px",
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "stack-loose": "32px",
+                        "border-thin": "1px",
+                        "stack-tight": "8px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Bricolage Grotesque"],
+                        "display-lg": ["Bricolage Grotesque"],
+                        "label-caps": ["JetBrains Mono"],
+                        "metadata-stamped": ["JetBrains Mono"],
+                        "headline-lg": ["Bricolage Grotesque"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "display-lg": ["56px", { "lineHeight": "52px", "letterSpacing": "-0.04em", "fontWeight": "800" }],
+                        "label-caps": ["10px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "metadata-stamped": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { 
+            background-color: theme('colors.electric-ink'); 
+            color: theme('colors.paper-cream'); 
+            min-height: max(884px, 100dvh);
+            position: relative;
+        }
+        /* Paper Grain Texture */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: url("https://www.transparenttextures.com/patterns/cream-paper.png");
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .hard-shadow { box-shadow: 6px 6px 0px 0px rgba(0,0,0,0.8); }
+        .hard-shadow-light { box-shadow: 6px 6px 0px 0px theme('colors.paper-cream'); }
+        
+        .washi-tape {
+            position: absolute;
+            width: 80px;
+            height: 24px;
+            background-color: theme('colors.soft-lavender');
+            opacity: 0.95;
+            z-index: 10;
+            border: 1px solid theme('colors.electric-ink');
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.5);
+        }
+        
+        .washi-tape-yellow {
+            background-color: theme('colors.acid-yellow');
+        }
+
+        /* Torn edge effect */
+        .torn-edge {
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 95% 95%, 90% 100%, 85% 96%, 80% 100%, 75% 95%, 70% 100%, 65% 94%, 60% 100%, 55% 97%, 50% 100%, 45% 95%, 40% 100%, 35% 96%, 30% 100%, 25% 94%, 20% 100%, 15% 95%, 10% 100%, 5% 96%, 0 100%);
+        }
+
+        /* Hand-drawn icon feel */
+        .stamped-icon {
+            font-family: 'Material Symbols Outlined';
+            font-variation-settings: 'FILL' 0, 'wght' 700, 'GRAD' 200, 'opsz' 24;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body class="pb-28 pt-24">
+<!-- TopAppBar -->
+<header class="bg-paper-cream dark:bg-electric-ink text-electric-ink dark:text-paper-cream border-b-4 border-electric-ink fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile h-20 w-full shadow-[0_4px_0_0_#E6E6FA]">
+<div class="flex items-center gap-2">
+<span class="text-headline-lg font-headline-lg font-black tracking-tighter uppercase">Frames</span>
+</div>
+<div class="font-metadata-stamped text-metadata-stamped px-3 py-1.5 border-2 border-electric-ink text-electric-ink bg-soft-lavender shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+            24.10.23
+        </div>
+</header>
+<!-- Main Content Feed: Mood Board Grid -->
+<main class="px-4 mx-auto max-w-lg md:max-w-2xl md:px-margin-desktop md:mt-8 pb-12">
+<div class="grid grid-cols-2 gap-x-8 gap-y-20 items-start relative">
+<!-- Column 1 Items -->
+<div class="flex flex-col gap-24 mt-8">
+<!-- Post 1: Polaroid Style -->
+<div class="relative group z-10 hover:z-50 transition-transform hover:scale-105 duration-300">
+<article class="bg-surface-container-lowest border-2 border-electric-ink p-3 pb-12 hard-shadow relative transform -rotate-3">
+<!-- Tape with metadata -->
+<div class="washi-tape" style="transform: rotate(-5deg); top: -12px; left: 50%; margin-left: -40px;">
+<span class="font-metadata-stamped text-[11px] text-electric-ink font-bold z-20 tracking-wider">22h left</span>
+</div>
+<!-- Image -->
+<div class="border-2 border-electric-ink overflow-hidden bg-surface-dim relative aspect-[4/5]">
+<img class="w-full h-full object-cover sepia-[.30] contrast-125 saturate-150" data-alt="A close-up shot of a vintage coffee cup" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOqlaUFZZqcnUhL7YqS7KwKlpaspqen-1SJk6VfSKRsavAjqQQ1rfMuaUbDYyhzPl3_zmcPgM3UgG1GCYxn2uYE-d8CUXxs982ja94hnoDBBY0-ePos0DGsd9Ht89llEgOxUEo2-KJDPeBY6X8W5_Nq18qo3R4DRHa1jWVOT38HUkbM6i298TZiTvvBlbaarQ3cXGL7-OALr2w9FdTNywpBGm5Wd5T704Jjo4xLZg4Xj4arii_hpfh"/>
+</div>
+</article>
+<!-- Handwritten Caption -->
+<div class="absolute -right-12 -bottom-8 font-['Caveat'] text-4xl text-primary transform rotate-6 bg-paper-cream/80 px-3 py-1 border border-electric-ink shadow-[4px_4px_0_0_#E6E6FA] z-20">
+                    Morning Brew <br/><span class="text-2xl">@cafe_noir</span>
+</div>
+</div>
+<!-- Post 3: Torn Edge Style -->
+<div class="relative group z-10 hover:z-50 transition-transform hover:scale-105 duration-300 mt-12">
+<article class="bg-surface-container-lowest border-2 border-electric-ink border-b-0 p-3 relative hard-shadow transform rotate-2">
+<div class="torn-edge absolute bottom-0 left-0 w-full h-6 bg-surface-container-lowest border-x-2 border-b-2 border-electric-ink translate-y-full z-10"></div>
+<div class="washi-tape washi-tape-yellow" style="transform: rotate(4deg); top: -12px; left: 50%; margin-left: -40px;">
+<span class="font-metadata-stamped text-[11px] text-electric-ink font-bold z-20 tracking-wider">4h left</span>
+</div>
+<div class="border-2 border-electric-ink overflow-hidden bg-surface-dim relative aspect-[4/3]">
+<img class="w-full h-full object-cover sepia-[.20] contrast-100 saturate-125" data-alt="A messy desk setup viewed from directly above" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcoEpUcF9smj-s_sLYMbjudJsdkfOhjrCGIZOXTPFrDGnyybPe0RtcGoXco-El3bai1vRmPGuvcBjSVmQCmsxEyCQjmJ6jumVfZVefPvGG74YPBPejsvSqtuvb3Qk96qgGa5NvgWUZ65942b1O9IzSSFcqSNTh-jmWEYvG0-0D-R-tp2KbkuOKT3_6Kd-zuQmOIXN1PHo09kMmGUGleHz35H6BX4sFibWBGtZXvPhnxbeu22NUj_1e"/>
+</div>
+</article>
+<!-- Handwritten Caption -->
+<div class="absolute -left-8 -bottom-10 font-['Caveat'] text-3xl text-electric-ink transform -rotate-6 px-4 py-2 z-20 bg-soft-lavender border-2 border-electric-ink shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                    Studio Chaos!
+                </div>
+</div>
+</div>
+<!-- Column 2 Items -->
+<div class="flex flex-col gap-24 mt-24">
+<!-- Post 2: Film Strip Style -->
+<div class="relative group z-20 hover:z-50 transition-transform hover:scale-105 duration-300 -ml-6">
+<article class="bg-electric-ink p-2 border-4 border-paper-cream hard-shadow-light transform rotate-3 relative">
+<!-- Tape -->
+<div class="washi-tape" style="transform: rotate(-15deg); top: 10px; left: -20px; width: 90px;">
+<span class="font-metadata-stamped text-[11px] font-bold text-electric-ink tracking-wider">14h left</span>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Top sprockets -->
+<div class="w-full flex justify-between px-2 pt-1">
+<div class="w-4 h-4 bg-paper-cream border border-electric-ink"></div>
+<div class="w-4 h-4 bg-paper-cream border border-electric-ink"></div>
+<div class="w-4 h-4 bg-paper-cream border border-electric-ink"></div>
+<div class="w-4 h-4 bg-paper-cream border border-electric-ink"></div>
+</div>
+<!-- Image -->
+<div class="bg-paper-cream p-1.5 border-2 border-paper-cream aspect-[3/4] relative">
+<img class="w-full h-full object-cover contrast-125 grayscale" data-alt="An energetic low-angle shot of a skateboarder" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN34tUVvVCDd6loWSR8OaKOCYlAOupF1EVM8D6Z9AVazJgEMO2rWTsdLueoCcifH6pCMj_6oZ79kLX_LpX3zHUh4_QJXEXvI3ErLIfB3PTTdIU980Nq4wovqUBds93jvwZD_yUC9ksuhJFbFl02hXj9cZ0GXD7RumzCXv0Y612TjA7UOI_4zDRJx__S2mcEEAKAvVOm0C5OoXsi_HybITXecF_pE2qcjdhGpajgkTfOjJmcirHHOLy"/>
+<div class="absolute bottom-2 right-2 flex gap-2 text-paper-cream opacity-80">
+<span class="stamped-icon text-sm">favorite</span>
+<span class="stamped-icon text-sm">near_me</span>
+</div>
+</div>
+<!-- Bottom sprockets -->
+<div class="w-full flex justify-between px-2 pb-1">
+<div class="w-4 h-4 bg-paper-cream border border-electric-ink"></div>
+<div class="w-4 h-4 bg-paper-cream border border-electric-ink"></div>
+<div class="w-4 h-4 bg-paper-cream border border-electric-ink"></div>
+<div class="w-4 h-4 bg-paper-cream border border-electric-ink"></div>
+</div>
+</div>
+</article>
+<!-- Handwritten Caption -->
+<div class="absolute -right-8 top-1/2 font-['Caveat'] text-4xl text-error transform rotate-12 z-20 whitespace-nowrap bg-surface-container-lowest border-2 border-electric-ink shadow-[4px_4px_0_0_#E2FF52] px-3 py-1">
+                    Air Time! <br/><span class="text-2xl text-electric-ink">@skate_rats</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden bg-paper-cream border-t-4 border-electric-ink fixed bottom-0 w-full z-50 pb-safe fixed bottom-0 left-0 w-full flex justify-around items-center h-24 px-2 shadow-[0_-4px_0_0_#E6E6FA]">
+<a class="flex flex-col items-center justify-center text-electric-ink rounded-none border-2 border-electric-ink px-4 py-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] scale-100 duration-100 bg-soft-lavender transform -rotate-2 relative" href="#">
+<div class="absolute -top-3 left-2 w-4 h-4 bg-electric-ink transform rotate-45"></div>
+<span class="font-label-caps text-label-caps font-bold tracking-widest uppercase">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary px-4 py-2 hover:text-electric-ink transition-all" href="#">
+<span class="material-symbols-outlined stamped-icon mb-1">grid_view</span>
+<span class="font-label-caps text-label-caps tracking-widest uppercase">Feed</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary px-4 py-2 hover:text-electric-ink transition-all" href="#">
+<span class="material-symbols-outlined stamped-icon mb-1">photo_camera</span>
+<span class="font-label-caps text-label-caps tracking-widest uppercase">Camera</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary px-4 py-2 hover:text-electric-ink transition-all" href="#">
+<span class="material-symbols-outlined stamped-icon mb-1">inventory_2</span>
+<span class="font-label-caps text-label-caps tracking-widest uppercase">Archive</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary px-4 py-2 hover:text-electric-ink transition-all" href="#">
+<span class="material-symbols-outlined stamped-icon mb-1">person</span>
+<span class="font-label-caps text-label-caps tracking-widest uppercase">Profile</span>
+</a>
+</nav>
+</body></html>

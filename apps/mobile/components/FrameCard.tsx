@@ -7,6 +7,7 @@ import { DateStamp } from "./DateStamp";
 import { PolaroidFrame } from "./PolaroidFrame";
 import { ReactionButton } from "./ReactionButton";
 import { UserHeader } from "./UserHeader";
+import { WashiTape } from "./WashiTape";
 import { deleteRemotePost, fetchFollowingList, fetchFriendsList, sendRemoteChatMessage, setRemotePostProfileFeatured, toggleRemoteReaction, updateRemotePostPrivacy } from "../services/supabase";
 import { useAppStore } from "../store/appStore";
 import { AppIcon } from "./AppIcon";
@@ -96,7 +97,7 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
     ]);
   };
 
-  const forwardToFriend = (friendId: string, friendName: string) => {
+  const forwardToFriend = (friendId: string, _friendName: string) => {
     const shareText = `Check out this Frame: https://frames-test-build.vercel.app/post/${post.id}`;
     void sendRemoteChatMessage(friendId, shareText);
     sendChatMessage(friendId, shareText);
@@ -119,6 +120,13 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
 
   return (
     <Pressable onLongPress={() => ownsPost && setOptionsVisible(true)} style={[styles.wrap, { transform: [{ rotate: tilt }] }]}>
+      {/* Top Washi Tape Pill */}
+      <WashiTape
+        label={post.profileFeatured ? "★ PINNED" : lifeLabel}
+        color={post.profileFeatured ? "yellow" : "lavender"}
+        tilt="-1.5deg"
+      />
+
       <View style={styles.headerRow}>
         <UserHeader user={post.user} meta={`${capturedLabel} • ${post.locationName ?? "No location"}`} />
         <View style={styles.headerRight}>
@@ -130,17 +138,16 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
         </View>
       </View>
 
-      <View style={styles.timeRow}>
-        <Text style={styles.timePill}>{lifeLabel}</Text>
-        {post.profileFeatured ? <Text style={styles.timePillPinned}>★ Pinned on Profile</Text> : null}
-      </View>
-
       <View style={styles.media}>
         <PolaroidFrame imageUrl={post.mediaUrl} caption={post.caption} frameStyle={post.frameStyle} filterPreset={post.filterPreset} />
       </View>
 
-      <DateStamp value={new Date(post.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase()} />
-      <Text style={styles.privacy}>{post.privacy === "PUBLIC" ? "🌍 Public" : "🔒 Friends Only"}</Text>
+      <View style={styles.metaFooter}>
+        <DateStamp value={new Date(post.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase()} />
+        <View style={[styles.privacyChip, post.privacy === "PUBLIC" ? styles.privacyPublic : styles.privacyFriends]}>
+          <Text style={styles.privacyText}>{post.privacy === "PUBLIC" ? "🌍 PUBLIC" : "🔒 FRIENDS"}</Text>
+        </View>
+      </View>
 
       <ReactionButton
         reactions={post.reactionCount}
@@ -275,49 +282,64 @@ function formatCapturedAt(value: string) {
 
 function formatFrameLife(expiresAt: string, featured?: boolean) {
   const expires = new Date(expiresAt).getTime();
-  if (Number.isNaN(expires)) return featured ? "Profile Frame" : "24h Feed";
+  if (Number.isNaN(expires)) return featured ? "PINNED" : "24H FEED";
   const diff = expires - Date.now();
-  if (diff <= 0) return featured ? "Archived • Pinned" : "Archived to timeline";
+  if (diff <= 0) return featured ? "PINNED" : "ARCHIVED";
   const hours = Math.floor(diff / 3600000);
   const minutes = Math.max(1, Math.floor((diff % 3600000) / 60000));
-  if (hours > 0) return `${hours}h ${minutes}m in feed`;
-  return `${minutes}m in feed`;
+  if (hours > 0) return `${hours}H LEFT`;
+  return `${minutes}M LEFT`;
 }
 
 const styles = StyleSheet.create({
-  wrap: { backgroundColor: palette.whitePaper, borderRadius: 8, borderWidth: 1, borderColor: "#E4D9CA", padding: 14 },
-  headerRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
+  wrap: {
+    backgroundColor: palette.whitePaper,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: palette.ink,
+    padding: 16,
+    paddingTop: 18,
+    marginVertical: 6,
+    position: "relative",
+    shadowColor: palette.ink,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.9,
+    shadowRadius: 0,
+    elevation: 4
+  },
+  headerRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginTop: 4 },
   headerRight: { flexDirection: "row", gap: 4 },
-  iconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: palette.paperCream, alignItems: "center", justifyContent: "center" },
-  timeRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 },
-  timePill: { color: palette.ink, backgroundColor: "#F8E7B2", borderRadius: 12, overflow: "hidden", paddingHorizontal: 9, paddingVertical: 4, fontSize: 11, fontWeight: "900" },
-  timePillPinned: { color: palette.whitePaper, backgroundColor: palette.ink, borderRadius: 12, overflow: "hidden", paddingHorizontal: 9, paddingVertical: 4, fontSize: 11, fontWeight: "900" },
-  media: { marginVertical: 14 },
-  privacy: { color: palette.mutedBrown, fontWeight: "800", marginTop: 8 },
-  detail: { color: palette.ink, fontWeight: "900", marginTop: 12 },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
-  actionSheet: { backgroundColor: palette.whitePaper, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 36, gap: 10 },
-  sheetHandle: { width: 44, height: 5, borderRadius: 3, backgroundColor: "#D4C8B8", alignSelf: "center", marginBottom: 8 },
-  sheetTitle: { fontSize: 18, fontWeight: "900", color: palette.ink, marginBottom: 6 },
-  sheetItem: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 12, backgroundColor: palette.paperCream },
-  sheetItemDelete: { backgroundColor: "#FDF0F0" },
-  sheetItemText: { fontSize: 15, fontWeight: "900", color: palette.ink },
-  sheetItemSub: { fontSize: 12, color: palette.mutedBrown, fontWeight: "700", marginTop: 2 },
+  iconBtn: { width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, borderColor: palette.ink, backgroundColor: palette.softLavender, alignItems: "center", justifyContent: "center" },
+  media: { marginVertical: 12 },
+  metaFooter: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8 },
+  privacyChip: { paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1.5, borderColor: palette.ink, borderRadius: 4 },
+  privacyPublic: { backgroundColor: palette.acidYellow },
+  privacyFriends: { backgroundColor: palette.softLavender },
+  privacyText: { fontSize: 10, fontWeight: "900", color: palette.ink, letterSpacing: 0.5 },
+  detail: { color: palette.ink, fontWeight: "900", marginTop: 12, fontSize: 13 },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" },
+  actionSheet: { backgroundColor: palette.whitePaper, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderWidth: 2, borderColor: palette.ink, borderBottomWidth: 0, padding: 20, paddingBottom: 36, gap: 10 },
+  sheetHandle: { width: 44, height: 5, borderRadius: 3, backgroundColor: palette.ink, alignSelf: "center", marginBottom: 8 },
+  sheetTitle: { fontSize: 18, fontWeight: "900", color: palette.ink, marginBottom: 6, letterSpacing: -0.3 },
+  sheetItem: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 8, borderWidth: 1.5, borderColor: palette.ink, backgroundColor: palette.paperCream, shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 2 },
+  sheetItemDelete: { backgroundColor: "#FDF0F0", borderColor: "#B8324A" },
+  sheetItemText: { fontSize: 14, fontWeight: "900", color: palette.ink },
+  sheetItemSub: { fontSize: 11, color: palette.mutedBrown, fontWeight: "700", marginTop: 2 },
   deleteText: { color: "#B8324A" },
   deleteSub: { color: "#C05621" },
-  sheetCancel: { alignItems: "center", paddingVertical: 14, borderRadius: 12, marginTop: 6, backgroundColor: palette.paperCream },
-  sheetCancelText: { fontSize: 15, fontWeight: "900", color: palette.mutedBrown },
+  sheetCancel: { alignItems: "center", paddingVertical: 12, borderRadius: 8, borderWidth: 1.5, borderColor: palette.ink, marginTop: 6, backgroundColor: palette.softLavender },
+  sheetCancelText: { fontSize: 14, fontWeight: "900", color: palette.ink },
   noFriends: { padding: 18, alignItems: "center", gap: 6 },
   noFriendsText: { fontSize: 16, fontWeight: "900", color: palette.ink },
   noFriendsCopy: { fontSize: 13, color: palette.mutedBrown, textAlign: "center" },
   friendRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 8, paddingHorizontal: 6, borderBottomWidth: 1, borderColor: "#E4D9CA" },
-  friendAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#E4D9CA" },
+  friendAvatar: { width: 40, height: 40, borderRadius: 20, borderWidth: 1.5, borderColor: palette.ink, backgroundColor: palette.softLavender },
   friendMeta: { flex: 1 },
   friendName: { fontSize: 14, fontWeight: "900", color: palette.ink },
   friendHandle: { fontSize: 12, color: palette.mutedBrown, fontWeight: "700" },
-  forwardBtn: { backgroundColor: palette.ink, paddingHorizontal: 16, paddingVertical: 7, borderRadius: 16 },
-  forwardBtnSent: { backgroundColor: "#E4D9CA" },
-  forwardBtnText: { color: palette.whitePaper, fontSize: 13, fontWeight: "900" },
-  forwardBtnTextSent: { color: palette.ink },
-  shareDivider: { height: 1, backgroundColor: "#E4D9CA", marginVertical: 6 }
+  forwardBtn: { backgroundColor: palette.acidYellow, borderWidth: 1.5, borderColor: palette.ink, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 6, shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0 },
+  forwardBtnSent: { backgroundColor: palette.softLavender },
+  forwardBtnText: { color: palette.ink, fontSize: 12, fontWeight: "900" },
+  forwardBtnTextSent: { color: palette.mutedBrown },
+  shareDivider: { height: 1, backgroundColor: palette.ink, marginVertical: 6 }
 });

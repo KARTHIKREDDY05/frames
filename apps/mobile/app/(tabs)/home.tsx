@@ -58,17 +58,22 @@ export default function HomeFeed() {
         ListHeaderComponent={
           <View style={styles.header}>
             <View style={styles.titleRow}>
-              <View>
-                <Text style={styles.kicker}>FRIENDS & CLOSE ONES</Text>
-                <Text style={styles.title}>Home</Text>
+              <View style={styles.brandTitleWrap}>
+                <View style={styles.brandBadge}><Text style={styles.brandBadgeText}>FRAMES</Text></View>
+                <Text style={styles.kicker}>FRIENDS & SCRAPBOOK</Text>
               </View>
               <View style={styles.topActions}>
+                <View style={styles.stampedDateBadge}>
+                  <Text style={styles.stampedDateText}>
+                    {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase()}
+                  </Text>
+                </View>
                 <Link href="/(tabs)/chats" asChild>
-                  <Pressable style={styles.notifyButton}><AppIcon name="comment" color={palette.ink} size={20} /></Pressable>
+                  <Pressable style={styles.notifyButton}><AppIcon name="comment" color={palette.ink} size={18} /></Pressable>
                 </Link>
                 <Link href="/notifications" asChild>
                   <Pressable style={styles.notifyButton}>
-                    <AppIcon name="bell" color={palette.ink} size={20} />
+                    <AppIcon name="bell" color={palette.ink} size={18} />
                     {unreadCount > 0 ? <Text style={styles.badge}>{unreadCount}</Text> : null}
                   </Pressable>
                 </Link>
@@ -95,7 +100,7 @@ export default function HomeFeed() {
               ))}
               <Link href="/(tabs)/search" asChild>
                 <Pressable style={styles.story}>
-                  <View style={styles.addStory}><AppIcon name="user-plus" color={palette.ink} size={22} /></View>
+                  <View style={styles.addStory}><AppIcon name="user-plus" color={palette.ink} size={20} /></View>
                   <Text style={styles.storyLabel}>Find</Text>
                 </Pressable>
               </Link>
@@ -114,24 +119,29 @@ function isActiveFrame(expiresAt: string) {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 18, gap: 18, paddingBottom: 110 },
+  content: { padding: 16, gap: 16, paddingBottom: 110 },
   header: { gap: 14, marginBottom: 8, paddingTop: 16 },
   titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  kicker: { color: palette.mutedBrown, fontSize: 12, fontWeight: "900" },
-  title: { fontSize: 34, fontWeight: "900", color: palette.ink },
-  topActions: { flexDirection: "row", gap: 8 },
-  notifyButton: { width: 46, height: 46, borderRadius: 23, backgroundColor: palette.whitePaper, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#E4D9CA" },
-  badge: { position: "absolute", top: -2, right: -2, minWidth: 20, height: 20, borderRadius: 10, backgroundColor: "#B8324A", color: palette.whitePaper, textAlign: "center", fontWeight: "900", fontSize: 12, overflow: "hidden" },
+  brandTitleWrap: { gap: 4 },
+  brandBadge: { backgroundColor: palette.ink, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, alignSelf: "flex-start", transform: [{ rotate: "-2deg" }] },
+  brandBadgeText: { color: palette.acidYellow, fontSize: 11, fontWeight: "900", letterSpacing: 1 },
+  kicker: { color: palette.mutedBrown, fontSize: 11, fontWeight: "900", letterSpacing: 0.5 },
+  title: { fontSize: 30, fontWeight: "900", color: palette.ink },
+  topActions: { flexDirection: "row", alignItems: "center", gap: 8 },
+  stampedDateBadge: { backgroundColor: palette.softLavender, borderWidth: 1.5, borderColor: palette.ink, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 2 },
+  stampedDateText: { fontSize: 10, fontWeight: "900", color: palette.ink, letterSpacing: 0.8 },
+  notifyButton: { width: 38, height: 38, borderRadius: 19, backgroundColor: palette.whitePaper, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: palette.ink, shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 2 },
+  badge: { position: "absolute", top: -3, right: -3, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: "#B8324A", color: palette.whitePaper, textAlign: "center", fontWeight: "900", fontSize: 10, lineHeight: 18, overflow: "hidden" },
   shortcutRow: { flexDirection: "row", gap: 8 },
-  shortcut: { flex: 1, minHeight: 42, borderRadius: 21, backgroundColor: palette.whitePaper, borderWidth: 1, borderColor: "#E4D9CA", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 7 },
+  shortcut: { flex: 1, minHeight: 40, borderRadius: 6, backgroundColor: palette.whitePaper, borderWidth: 1.5, borderColor: palette.ink, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 7, shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 2 },
   shortcutText: { color: palette.ink, fontSize: 12, fontWeight: "900" },
   stories: { gap: 14, paddingVertical: 4, paddingRight: 12 },
   story: { width: 70, alignItems: "center", gap: 6 },
-  storyRing: { width: 64, height: 64, borderRadius: 32, borderWidth: 3, borderColor: palette.softPeach, alignItems: "center", justifyContent: "center", backgroundColor: palette.whitePaper },
-  storyAvatar: { width: 54, height: 54, borderRadius: 27, backgroundColor: "#E4D9CA" },
-  addStory: { width: 64, height: 64, borderRadius: 32, borderWidth: 1, borderColor: "#E4D9CA", backgroundColor: palette.whitePaper, alignItems: "center", justifyContent: "center" },
+  storyRing: { width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: palette.ink, alignItems: "center", justifyContent: "center", backgroundColor: palette.whitePaper, shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 2 },
+  storyAvatar: { width: 54, height: 54, borderRadius: 27, backgroundColor: palette.softLavender },
+  addStory: { width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: palette.ink, backgroundColor: palette.acidYellow, alignItems: "center", justifyContent: "center", shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 2 },
   storyLabel: { color: palette.ink, fontSize: 11, fontWeight: "800", maxWidth: 70 },
-  empty: { gap: 12, paddingTop: 160 },
-  emptyTitle: { fontSize: 28, fontWeight: "900", color: palette.ink },
-  emptyCopy: { color: palette.mutedBrown, fontSize: 17 }
+  empty: { gap: 12, paddingTop: 100 },
+  emptyTitle: { fontSize: 26, fontWeight: "900", color: palette.ink },
+  emptyCopy: { color: palette.mutedBrown, fontSize: 15 }
 });

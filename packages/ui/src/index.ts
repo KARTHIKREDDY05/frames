@@ -4,10 +4,14 @@ export const palette = {
   sage: "#C8D7C0",
   powderBlue: "#C8DCE8",
   lavender: "#D8CBE5",
+  softLavender: "#E6E6FA",
   sunshine: "#F5E3A9",
-  ink: "#342B2A",
+  acidYellow: "#E2FF52",
+  ink: "#1A1817",
+  electricInk: "#111111",
   mutedBrown: "#8D7F79",
-  whitePaper: "#FFFDF8"
+  y2kSilver: "#D1D1D1",
+  whitePaper: "#FFFFFF"
 } as const;
 
 export const spacing = {

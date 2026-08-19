@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Frames - Discover</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&amp;family=Hanken+Grotesk:wght@500&amp;family=JetBrains+Mono:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "electric-ink": "#000000",
+                        "tertiary-container": "#f2f1f1",
+                        "background": "#fff9ef",
+                        "inverse-primary": "#b8d325",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f9f3ea",
+                        "surface-dim": "#dfd9d1",
+                        "soft-lavender": "#E6E6FA",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "outline-variant": "#c6c9af",
+                        "tertiary": "#5d5e5f",
+                        "on-primary-container": "#647500",
+                        "secondary": "#5c5d6e",
+                        "outline": "#767963",
+                        "inverse-surface": "#32302a",
+                        "surface-tint": "#566500",
+                        "secondary-fixed": "#e1e1f5",
+                        "on-surface": "#1d1b16",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "secondary-fixed-dim": "#c5c5d8",
+                        "surface-variant": "#e7e2d9",
+                        "y2k-silver": "#D1D1D1",
+                        "on-secondary-fixed": "#191b29",
+                        "secondary-container": "#e1e1f5",
+                        "inverse-on-surface": "#f6f0e7",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed": "#181e00",
+                        "surface-container-high": "#ede7de",
+                        "primary-container": "#e2ff52",
+                        "surface-container": "#f3ede4",
+                        "primary": "#566500",
+                        "surface-container-highest": "#e7e2d9",
+                        "surface-container-lowest": "#ffffff",
+                        "acid-yellow": "#E2FF52",
+                        "primary-fixed-dim": "#b8d325",
+                        "primary-fixed": "#d3f043",
+                        "surface": "#fff9ef",
+                        "on-error-container": "#93000a",
+                        "on-background": "#1d1b16",
+                        "tertiary-fixed": "#e2e2e2",
+                        "on-secondary-fixed-variant": "#444655",
+                        "tertiary-fixed-dim": "#c6c6c6",
+                        "on-tertiary": "#ffffff",
+                        "paper-cream": "#F6F0E7",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#626374",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#fff9ef",
+                        "on-surface-variant": "#464835",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#404c00",
+                        "on-tertiary-container": "#6c6e6e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "unit": "4px",
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "stack-loose": "32px",
+                        "border-thin": "1px",
+                        "stack-tight": "8px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Bricolage Grotesque"],
+                        "display-lg": ["Bricolage Grotesque"],
+                        "label-caps": ["JetBrains Mono"],
+                        "metadata-stamped": ["JetBrains Mono"],
+                        "headline-lg": ["Bricolage Grotesque"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "display-lg": ["56px", {"lineHeight": "52px", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                        "label-caps": ["10px", {"lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "metadata-stamped": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: theme('colors.paper-cream'); }
+        .polaroid-card {
+            background-color: theme('colors.surface-container-lowest');
+            border: 1px solid theme('colors.electric-ink');
+            padding: 8px 8px 32px 8px;
+            position: relative;
+            box-shadow: 4px 4px 0px 0px theme('colors.electric-ink');
+            break-inside: avoid;
+            margin-bottom: 24px;
+        }
+        .polaroid-img {
+            border: 1px solid theme('colors.electric-ink');
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            aspect-ratio: 4/5;
+        }
+        .tape {
+            position: absolute;
+            background-color: theme('colors.soft-lavender');
+            opacity: 0.8;
+            width: 40px;
+            height: 16px;
+            z-index: 10;
+        }
+        .tape.acid { background-color: theme('colors.acid-yellow'); }
+    </style>
+</head>
+<body class="antialiased min-h-screen relative text-electric-ink">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-paper-cream dark:bg-electric-ink border-b border-electric-ink dark:border-paper-cream flex justify-between items-center px-margin-mobile h-16">
+<div class="flex items-center gap-2 text-electric-ink dark:text-acid-yellow hover:bg-acid-yellow hover:text-electric-ink transition-colors transform hover:-rotate-1 hover:scale-95 duration-75 p-1">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">token</span>
+<span class="font-headline-lg-mobile text-headline-lg-mobile font-black tracking-tighter">FRAMES</span>
+</div>
+<div>
+<!-- Trailing placeholder if needed -->
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="pt-24 pb-32 px-margin-mobile max-w-lg mx-auto md:max-w-4xl">
+<div class="mb-8 relative inline-block">
+<h1 class="font-display-lg text-display-lg text-electric-ink transform -rotate-1 relative z-10">DISCOVER</h1>
+<div class="absolute -bottom-2 -right-4 w-full h-4 bg-acid-yellow z-0 transform rotate-2"></div>
+</div>
+<!-- Kinetic Masonry Grid -->
+<div class="columns-2 md:columns-3 gap-gutter">
+<!-- Polaroid 1 -->
+<div class="polaroid-card transform -rotate-2 hover:rotate-0 transition-transform">
+<div class="tape acid top-[-8px] left-[50%] ml-[-20px] transform -rotate-6"></div>
+<img class="polaroid-img bg-surface-dim" data-alt="A striking digital installation art piece featuring glowing, generative geometric shapes suspended in a vast, minimalist gallery space. The room is illuminated by high-key, soft white lighting that creates a bright, modern light-mode aesthetic. The artwork relies on a sophisticated palette of deep blacks and pristine whites, punctuated by intense accents of vibrant acid yellow. The mood is raw yet technologically advanced, shot on gritty 35mm film." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDG-sKLf7PT4MW033ihPlDr9DI7mzcoFqce9u7iVmcXDt3SNI8ymca-hhVnVOunSSGn9KiQrnf9hdvQqb33DOEJJH-0oV9pIuAv-n1gkyium7tlr0E663zdqUuexsLKhh7w-maUzyUvfSD7mx9mUfAe71jMpqycIr7yYP84XakoPv2b2sXGOvFz14aBxsXtmqHUTDsI5PaiEG9wPEeEmB2dLMRVo7dpUFIB6sFhzuIjY4glM7QH9bT4"/>
+<div class="absolute bottom-2 left-2 flex justify-between w-[calc(100%-16px)]">
+<span class="font-metadata-stamped text-metadata-stamped">TOKYO</span>
+<span class="font-metadata-stamped text-metadata-stamped">11.02</span>
+</div>
+</div>
+<!-- Polaroid 2 -->
+<div class="polaroid-card transform rotate-1 hover:rotate-0 transition-transform mt-6">
+<img class="polaroid-img bg-surface-dim aspect-square" data-alt="A close up, high contrast street photography portrait of a Gen-Z subject wearing avant-garde metallic streetwear. The background is an overexposed bright sky with harsh shadows falling across an industrial concrete wall. The visual style is aggressive, neo-brutalist, with intentional grain, light leaks, and a physical scrapbook texture. Palette is strictly high contrast monochrome with a solitary pop of soft lavender." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6iBWEuioCYqfCapO6QjJ55pzsjfPXX7ENEV1NX9KrQi8JDKeZPI7mHwnpYehPAYmRQya-QvDwIPGpNoI0yfGH3mLkrCI1PjQcDt8r2SRRCTh3Yn_1T-E_tDlFPgRXIcHS0ManqLJxJv3Fj-2jBoJ_C_DP0M_qs9gfA-I18SywN6Mg8OzsH3h4-FK7sRk6JYLREVwdwcNVCGC7xHZSKRHa0iEjyCHxlSxhg6P4OmJnag3152J0Wg9_"/>
+<div class="absolute bottom-2 left-2 flex justify-between w-[calc(100%-16px)]">
+<span class="font-metadata-stamped text-metadata-stamped">BERLIN</span>
+<span class="font-metadata-stamped text-metadata-stamped">11.01</span>
+</div>
+</div>
+<!-- Polaroid 3 -->
+<div class="polaroid-card transform -rotate-1 hover:rotate-0 transition-transform">
+<div class="tape top-[-4px] right-[-10px] transform rotate-12"></div>
+<img class="polaroid-img bg-surface-dim aspect-[3/4]" data-alt="An abstract architectural shot focusing on raw concrete angles and sharp intersecting shadows. The composition is highly geometric and asymmetrical. A clear blue sky is visible in a small triangular section. Shot with a heavy flash effect causing washed out highlights and pitch black shadows, mimicking an old disposable camera aesthetic common in modern DIY art zines." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBh-0-0RvUiUtrz9Oh5_Dw6ZI9WsWRERM7ohog8d5GiUJMqB-dRk7VyG_yXoUKMOSIYJYXhqEXSIOMjFi9mU1YilekYbCg78TxxIfWka6O2Vw1iivvF07cQSexCPoSvdfEeA7UoVJiZ8aYydfEwOU5YpKGmE_zRofHrPdpxgj5HknQNX81DrWTrxGPgbngMClYUcCNJYoXFpqLCLFkD7NhzHE6qisQqYCet2fPS6yBL_8ezA7t0Blcl"/>
+<div class="absolute bottom-2 left-2 flex justify-between w-[calc(100%-16px)]">
+<span class="font-metadata-stamped text-metadata-stamped">LONDON</span>
+<span class="font-metadata-stamped text-metadata-stamped">10.28</span>
+</div>
+</div>
+<!-- Polaroid 4 -->
+<div class="polaroid-card transform rotate-3 hover:rotate-0 transition-transform">
+<div class="tape acid bottom-12 left-[-12px] transform -rotate-45"></div>
+<img class="polaroid-img bg-surface-dim" data-alt="A chaotic, blurry shot of a moving underground train captured with a slow shutter speed. Light trails streak across the frame in neon yellow and harsh white, contrasting against the dark, grimy station interior. The image has a raw, kinetic energy, heavily textured with physical scratches and dust spots as if scanned directly from a damaged photo print." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQCiLp0Tyt57JJTwE882NcxblJsOFLSCIqgwch_Qvu-cTOvbZxg1XbZFblWGCmRRGRcXXY_jyvmA67k6WcLslLEkCAT9uAgnHI1E-PPGrLOBlIwFrgYoiiG3AvjIQYlpd3cO34aaesD2nvndlOSqySxKAEfXc6TfadIwxAHcbQcS5vyhO9agl_i69nBRqjyAzwuqybe9vhZi26mdKlLts77c8lWiYYR1cf-4GEqH2gXt1HxN71aRab"/>
+<div class="absolute bottom-2 left-2 flex justify-between w-[calc(100%-16px)]">
+<span class="font-metadata-stamped text-metadata-stamped">NYC</span>
+<span class="font-metadata-stamped text-metadata-stamped">10.24</span>
+</div>
+</div>
+<!-- Polaroid 5 -->
+<div class="polaroid-card transform -rotate-2 hover:rotate-0 transition-transform mt-4">
+<img class="polaroid-img bg-surface-dim aspect-square" data-alt="A minimalist still life of a pair of chunky, retro-futuristic headphones resting on a crumpled piece of white parchment paper. A single beam of harsh sunlight bisects the frame, creating a stark, pitch-black shadow offset perfectly to the bottom right. The aesthetic is extremely clean yet physically textured, heavily emphasizing the neo-brutalist product design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsG-FGpAHuv-WpFy9KEDLVgxXLF523tBnAMaVLE3xWbMJbgpe_KdDYCL5wkzyjZ62-TxaOmplPOSak94_G512qsF2o1UPccCcQYgcL_qBeGiZdS206fPGqZHlfH7WezZm2BOpQjoEgAqpGIVgSydivDmoNj_htUOWC3wWb_aQ9v0SQ503Sc6TuIG6QSMT-IxgIYVBYtQ6Ypm9pcLBbL4l3tdJ9XgFg3WvTcEReCcqNLI_dEOBGvMI0"/>
+<div class="absolute bottom-2 left-2 flex justify-between w-[calc(100%-16px)]">
+<span class="font-metadata-stamped text-metadata-stamped">STUDIO</span>
+<span class="font-metadata-stamped text-metadata-stamped">10.19</span>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center h-20 px-2 bg-paper-cream dark:bg-electric-ink border-t border-electric-ink dark:border-paper-cream z-50 pb-safe">
+<!-- Home (Inactive) -->
+<button class="flex flex-col items-center justify-center text-secondary dark:text-y2k-silver px-3 py-1 hover:bg-soft-lavender dark:hover:bg-secondary transition-all">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-label-caps mt-1">Home</span>
+</button>
+<!-- Feed (Active) -->
+<button class="flex flex-col items-center justify-center bg-acid-yellow text-electric-ink rounded-none border border-electric-ink px-3 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] scale-90 duration-100 transform -rotate-1">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="font-label-caps text-label-caps mt-1">Feed</span>
+</button>
+<!-- Camera (Inactive) -->
+<button class="flex flex-col items-center justify-center text-secondary dark:text-y2k-silver px-3 py-1 hover:bg-soft-lavender dark:hover:bg-secondary transition-all">
+<span class="material-symbols-outlined">photo_camera</span>
+<span class="font-label-caps text-label-caps mt-1">Camera</span>
+</button>
+<!-- Archive (Inactive) -->
+<button class="flex flex-col items-center justify-center text-secondary dark:text-y2k-silver px-3 py-1 hover:bg-soft-lavender dark:hover:bg-secondary transition-all">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-caps text-label-caps mt-1">Archive</span>
+</button>
+<!-- Profile (Inactive) -->
+<button class="flex flex-col items-center justify-center text-secondary dark:text-y2k-silver px-3 py-1 hover:bg-soft-lavender dark:hover:bg-secondary transition-all">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-caps text-label-caps mt-1">Profile</span>
+</button>
+</nav>
+</body></html>
