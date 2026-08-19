@@ -84,9 +84,11 @@ interface DbNotification {
   createdAt: string;
 }
 
-export function getAuthRedirectUrl(path = "/auth/callback") {
-  if (typeof window !== "undefined" && window.location?.origin) return `${window.location.origin}${path}`;
-  return Linking.createURL(path);
+export function getAuthRedirectUrl(path = "auth/callback") {
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return `${window.location.origin}/${path.replace(/^\//, "")}`;
+  }
+  return `frames://${path.replace(/^\//, "")}`;
 }
 
 export function isOAuthProviderEnabled(provider: Provider) {
