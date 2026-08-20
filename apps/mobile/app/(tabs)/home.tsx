@@ -6,7 +6,9 @@ import { palette } from "@frames/ui";
 import { AppIcon } from "../../components/AppIcon";
 import { FrameButton } from "../../components/FrameButton";
 import { FrameCard } from "../../components/FrameCard";
+import { SponsoredFrameCard } from "../../components/SponsoredFrameCard";
 import { PaperBackground } from "../../components/PaperBackground";
+import { VisualInteractiveTourOverlay } from "../../components/VisualInteractiveTourOverlay";
 import { fetchMyFriendships, fetchVisiblePosts } from "../../services/supabase";
 import { useAppStore } from "../../store/appStore";
 
@@ -15,40 +17,73 @@ export default function HomeFeed() {
   const currentUser = useAppStore((state) => state.currentUser);
   const friends = useAppStore((state) => state.friends);
   const mergePosts = useAppStore((state) => state.mergePosts);
+  const hasSeenNavigationGuide = useAppStore((state) => state.hasSeenNavigationGuide);
+  const completeNavigationGuide = useAppStore((state) => state.completeNavigationGuide);
+
   const [remoteFriends, setRemoteFriends] = useState<UserDto[]>([]);
-  const unreadCount = useAppStore((state) => state.notifications.filter((notification) => !notification.read && (!notification.recipientId || notification.recipientId === currentUser?.id)).length);
+  const [guideVisible, setGuideVisible] = useState(false);
+
+  const unreadCount = useAppStore((state) =>
+    state.notifications.filter((notification) => !notification.read && (!notification.recipientId || notification.recipientId === currentUser?.id)).length
+  );
+
+  // Auto-show navigation tour ONCE on first visit
+  useEffect(() => {
+    if (!hasSeenNavigationGuide && currentUser) {
+      setGuideVisible(true);
+      completeNavigationGuide();
+    }
+  }, [hasSeenNavigationGuide, currentUser, completeNavigationGuide]);
+
   useEffect(() => {
     let mounted = true;
     const load = async () => {
-      const [{ posts: remotePosts }, friendshipResult] = await Promise.all([fetchVisiblePosts(), fetchMyFriendships()]);
-      if (!mounted) return;
-      mergePosts(remotePosts);
-      if (!currentUser) return;
-      const accepted = friendshipResult.friendships
-        .filter((friendship) => friendship.status === "ACCEPTED")
-        .map((friendship) => {
-          const otherId = friendship.requesterId === currentUser.id ? friendship.receiverId : friendship.requesterId;
-          return friendshipResult.users.get(otherId);
-        })
-        .filter((user): user is UserDto => Boolean(user));
-      setRemoteFriends(accepted);
+      try {
+        const [postsResult, friendshipResult] = await Promise.all([
+          fetchVisiblePosts().catch(() => ({ posts: [] })),
+          fetchMyFriendships().catch(() => ({ friendships: [], users: new Map<string, UserDto>() }))
+        ]);
+        if (!mounted) return;
+        if (postsResult?.posts) mergePosts(postsResult.posts);
+        if (!currentUser) return;
+        const friendships = friendshipResult?.friendships ?? [];
+        const userMap = friendshipResult?.users instanceof Map ? friendshipResult.users : new Map<string, UserDto>();
+        const accepted = friendships
+          .filter((friendship) => friendship.status === "ACCEPTED")
+          .map((friendship) => {
+            const otherId = friendship.requesterId === currentUser.id ? friendship.receiverId : friendship.requesterId;
+            return userMap.get(otherId);
+          })
+          .filter((user): user is UserDto => Boolean(user));
+        setRemoteFriends(accepted);
+      } catch {
+        // Handled silently
+      }
     };
     void load();
     return () => {
       mounted = false;
     };
   }, [currentUser, mergePosts]);
+
   const allFriends = useMemo(() => {
     const byId = new Map<string, UserDto>();
     [...friends, ...remoteFriends].forEach((friend) => byId.set(friend.id, friend));
     return Array.from(byId.values());
   }, [friends, remoteFriends]);
+
   const closeCircle = currentUser ? [currentUser, ...allFriends] : allFriends;
   const closePosts = posts.filter((post) => {
     const ownPost = post.user.id === currentUser?.id || (!currentUser && post.user.id === "user-guest");
     const friendPost = allFriends.some((friend) => friend.id === post.user.id);
     return (ownPost || friendPost) && isActiveFrame(post.expiresAt);
   }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const handleGuideClose = () => {
+    setGuideVisible(false);
+    completeNavigationGuide();
+  };
+
   return (
     <PaperBackground>
       <FlatList
@@ -58,17 +93,16 @@ export default function HomeFeed() {
         ListHeaderComponent={
           <View style={styles.header}>
             <View style={styles.titleRow}>
-              <View style={styles.brandTitleWrap}>
-                <View style={styles.brandBadge}><Text style={styles.brandBadgeText}>FRAMES</Text></View>
-                <Text style={styles.kicker}>FRIENDS & SCRAPBOOK</Text>
+              <View style={styles.brandLogoRow}>
+                <AppIcon name="frames-logo" color={palette.ink} size={24} />
+                <Text style={styles.minimalBrandTitle}>Frames</Text>
               </View>
               <View style={styles.topActions}>
-                <View style={styles.stampedDateBadge}>
-                  <Text style={styles.stampedDateText}>
-                    {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase()}
-                  </Text>
-                </View>
-                <Link href="/(tabs)/chats" asChild>
+                <Pressable style={styles.guideButton} onPress={() => setGuideVisible(true)}>
+                  <AppIcon name="spark" color={palette.ink} size={14} />
+                  <Text style={styles.guideButtonText}>Tour</Text>
+                </Pressable>
+                <Link href="/chats" asChild>
                   <Pressable style={styles.notifyButton}><AppIcon name="comment" color={palette.ink} size={18} /></Pressable>
                 </Link>
                 <Link href="/notifications" asChild>
@@ -80,16 +114,16 @@ export default function HomeFeed() {
               </View>
             </View>
             <View style={styles.shortcutRow}>
-              <Link href="/(tabs)/feed" asChild>
+              <Link href="/feed" asChild>
                 <Pressable style={styles.shortcut}><AppIcon name="public" color={palette.ink} size={16} /><Text style={styles.shortcutText}>Public Feed</Text></Pressable>
               </Link>
-              <Link href="/(tabs)/archive" asChild>
-                <Pressable style={styles.shortcut}><AppIcon name="archive" color={palette.ink} size={16} /><Text style={styles.shortcutText}>Archive</Text></Pressable>
+              <Link href="/archive" asChild>
+                <Pressable style={styles.shortcut}><AppIcon name="archive" color={palette.ink} size={16} /><Text style={styles.shortcutText}>Memory Book</Text></Pressable>
               </Link>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stories}>
               {closeCircle.map((user) => (
-                <Link key={user.id} href={user.id === currentUser?.id ? "/(tabs)/profile" : `/user/${user.id}`} asChild>
+                <Link key={user.id} href={user.id === currentUser?.id ? "/profile" : `/user/${user.id}`} asChild>
                   <Pressable style={styles.story}>
                     <View style={styles.storyRing}>
                       <Image source={{ uri: user.avatarUrl ?? undefined }} style={styles.storyAvatar} />
@@ -98,7 +132,7 @@ export default function HomeFeed() {
                   </Pressable>
                 </Link>
               ))}
-              <Link href="/(tabs)/search" asChild>
+              <Link href="/search" asChild>
                 <Pressable style={styles.story}>
                   <View style={styles.addStory}><AppIcon name="user-plus" color={palette.ink} size={20} /></View>
                   <Text style={styles.storyLabel}>Find</Text>
@@ -107,41 +141,58 @@ export default function HomeFeed() {
             </ScrollView>
           </View>
         }
-        ListEmptyComponent={<View style={styles.empty}><Text style={styles.emptyTitle}>No close Frames yet.</Text><Text style={styles.emptyCopy}>Your Frames and accepted friends' Frames appear here. Public discovery lives in Feed.</Text><Link href="/(tabs)/camera" asChild><FrameButton icon="camera" label="Take your first Frame" /></Link><Link href="/(tabs)/feed" asChild><FrameButton icon="home" label="Open Public Feed" variant="secondary" /></Link></View>}
-        renderItem={({ item, index }) => <FrameCard post={item} tilt={index % 2 === 0 ? "-1.5deg" : "1.3deg"} />}
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Text style={styles.emptyTitle}>No close Frames yet.</Text>
+            <Text style={styles.emptyCopy}>Your Frames and accepted friends' Frames appear here. Public discovery lives in Feed.</Text>
+            <Link href="/camera" asChild>
+              <FrameButton icon="camera" label="Take your first Frame" />
+            </Link>
+            <Link href="/feed" asChild>
+              <FrameButton icon="home" label="Open Public Feed" variant="secondary" />
+            </Link>
+          </View>
+        }
+        renderItem={({ item, index }) => (
+          <View>
+            <FrameCard post={item} tilt={index % 2 === 0 ? "-2.2deg" : "1.8deg"} />
+            {index === 0 ? <SponsoredFrameCard tilt="1.8deg" /> : null}
+          </View>
+        )}
       />
+
+      <VisualInteractiveTourOverlay visible={guideVisible} onClose={handleGuideClose} />
     </PaperBackground>
   );
 }
 
 function isActiveFrame(expiresAt: string) {
-  return new Date(expiresAt).getTime() > Date.now();
+  const expires = new Date(expiresAt).getTime();
+  if (Number.isNaN(expires)) return true;
+  return expires > Date.now();
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, gap: 16, paddingBottom: 110 },
-  header: { gap: 14, marginBottom: 8, paddingTop: 16 },
-  titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  brandTitleWrap: { gap: 4 },
-  brandBadge: { backgroundColor: palette.ink, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, alignSelf: "flex-start", transform: [{ rotate: "-2deg" }] },
-  brandBadgeText: { color: palette.acidYellow, fontSize: 11, fontWeight: "900", letterSpacing: 1 },
-  kicker: { color: palette.mutedBrown, fontSize: 11, fontWeight: "900", letterSpacing: 0.5 },
-  title: { fontSize: 30, fontWeight: "900", color: palette.ink },
-  topActions: { flexDirection: "row", alignItems: "center", gap: 8 },
-  stampedDateBadge: { backgroundColor: palette.softLavender, borderWidth: 1.5, borderColor: palette.ink, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 2 },
-  stampedDateText: { fontSize: 10, fontWeight: "900", color: palette.ink, letterSpacing: 0.8 },
-  notifyButton: { width: 38, height: 38, borderRadius: 19, backgroundColor: palette.whitePaper, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: palette.ink, shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 2 },
-  badge: { position: "absolute", top: -3, right: -3, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: "#B8324A", color: palette.whitePaper, textAlign: "center", fontWeight: "900", fontSize: 10, lineHeight: 18, overflow: "hidden" },
+  content: { padding: 18, paddingTop: 52, paddingBottom: 110, gap: 18 },
+  header: { gap: 14, marginBottom: 8 },
+  titleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  brandLogoRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  minimalBrandTitle: { fontSize: 22, fontWeight: "900", color: palette.ink, letterSpacing: -0.5 },
+  topActions: { flexDirection: "row", alignItems: "center", gap: 6 },
+  guideButton: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: palette.acidYellow, borderWidth: 1.5, borderColor: palette.ink, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 6, shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.85, shadowRadius: 0 },
+  guideButtonText: { fontSize: 11, fontWeight: "900", color: palette.ink },
+  notifyButton: { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, borderColor: palette.ink, backgroundColor: palette.whitePaper, alignItems: "center", justifyContent: "center", position: "relative", shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.85, shadowRadius: 0 },
+  badge: { position: "absolute", top: -4, right: -4, backgroundColor: palette.acidYellow, borderWidth: 1.5, borderColor: palette.ink, color: palette.ink, fontSize: 10, fontWeight: "900", borderRadius: 8, paddingHorizontal: 5, paddingVertical: 1 },
   shortcutRow: { flexDirection: "row", gap: 8 },
-  shortcut: { flex: 1, minHeight: 40, borderRadius: 6, backgroundColor: palette.whitePaper, borderWidth: 1.5, borderColor: palette.ink, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 7, shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 2 },
-  shortcutText: { color: palette.ink, fontSize: 12, fontWeight: "900" },
-  stories: { gap: 14, paddingVertical: 4, paddingRight: 12 },
-  story: { width: 70, alignItems: "center", gap: 6 },
-  storyRing: { width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: palette.ink, alignItems: "center", justifyContent: "center", backgroundColor: palette.whitePaper, shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 2 },
-  storyAvatar: { width: 54, height: 54, borderRadius: 27, backgroundColor: palette.softLavender },
-  addStory: { width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: palette.ink, backgroundColor: palette.acidYellow, alignItems: "center", justifyContent: "center", shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 2 },
-  storyLabel: { color: palette.ink, fontSize: 11, fontWeight: "800", maxWidth: 70 },
-  empty: { gap: 12, paddingTop: 100 },
-  emptyTitle: { fontSize: 26, fontWeight: "900", color: palette.ink },
-  emptyCopy: { color: palette.mutedBrown, fontSize: 15 }
+  shortcut: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: palette.whitePaper, borderWidth: 1.5, borderColor: palette.ink, borderRadius: 8, paddingVertical: 10, shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.85, shadowRadius: 0 },
+  shortcutText: { fontSize: 12, fontWeight: "900", color: palette.ink },
+  stories: { gap: 12, paddingVertical: 4 },
+  story: { alignItems: "center", gap: 5, width: 62 },
+  storyRing: { width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: palette.ink, padding: 2, backgroundColor: palette.acidYellow },
+  storyAvatar: { width: "100%", height: "100%", borderRadius: 24, backgroundColor: palette.softPeach },
+  storyLabel: { fontSize: 11, fontWeight: "800", color: palette.ink },
+  addStory: { width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: palette.ink, borderStyle: "dashed", backgroundColor: palette.whitePaper, alignItems: "center", justifyContent: "center" },
+  empty: { backgroundColor: palette.whitePaper, borderWidth: 1.5, borderColor: palette.ink, borderRadius: 8, padding: 24, gap: 12, alignItems: "center", shadowColor: palette.ink, shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.85, shadowRadius: 0 },
+  emptyTitle: { fontSize: 18, fontWeight: "900", color: palette.ink },
+  emptyCopy: { fontSize: 13, color: palette.mutedBrown, textAlign: "center", lineHeight: 18 }
 });

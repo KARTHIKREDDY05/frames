@@ -68,6 +68,7 @@ interface AppState {
   currentUser: UserDto | null;
   authChecked: boolean;
   hasSeenIntro: boolean;
+  hasSeenNavigationGuide: boolean;
   accounts: Account[];
   posts: PostDto[];
   dailyFrames: DailyFrameDto[];
@@ -93,6 +94,7 @@ interface AppState {
   signIn: (email: string, password: string) => UserDto | null;
   updateProfile: (input: Partial<Pick<UserDto, "displayName" | "username" | "email" | "bio" | "avatarUrl" | "defaultPrivacy" | "profileVisibility">>) => { ok: boolean; message?: string };
   completeIntro: () => void;
+  completeNavigationGuide: () => void;
   logout: () => void;
   createPost: (input: { caption: string; privacy: Privacy; frameStyle: PostDto["frameStyle"]; mediaUrl: string; filterPreset?: PhotoFilter }) => void;
   deletePost: (postId: string) => void;
@@ -140,6 +142,8 @@ export const useAppStore = create<AppState>()(
       currentUser: null,
       authChecked: false,
       hasSeenIntro: false,
+      hasSeenNavigationGuide: false,
+      completeNavigationGuide: () => set({ hasSeenNavigationGuide: true }),
       accounts: [],
       posts: [],
       dailyFrames: [],

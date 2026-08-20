@@ -5,6 +5,7 @@ import { Animated, Platform, Pressable, StatusBar, StyleSheet, Text, View } from
 import { useEffect, useMemo, useRef, useState } from "react";
 import { palette } from "@frames/ui";
 import { AppIcon } from "../components/AppIcon";
+import { registerForPushNotificationsAsync, triggerLocalPushNotification } from "../services/pushNotificationService";
 import { fetchCurrentUserProfile, fetchMyFriendships, fetchRemoteNotifications, touchMyPresence } from "../services/supabase";
 import { useAppStore } from "../store/appStore";
 
@@ -63,6 +64,7 @@ export default function RootLayout() {
         completeIntro();
       }
       setAuthChecked(true);
+      void registerForPushNotificationsAsync();
     };
     void hydrate();
   }, [completeIntro, setAuthChecked, setCurrentUser]);

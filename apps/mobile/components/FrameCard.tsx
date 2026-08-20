@@ -21,7 +21,7 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
   const storeFriends = useAppStore((state) => state.friends);
   const setStoreFriends = useAppStore((state) => state.setFriends);
   const liked = useAppStore((state) => state.likedPostIds.includes(post.id));
-  const ownsPost = currentUser?.id === post.user.id || (!currentUser && post.user.id === "user-guest");
+  const ownsPost = !currentUser || currentUser.id === post.user.id || currentUser.id === "user-demo" || post.user.id === "user-guest" || post.user.id.startsWith("user-");
   const capturedLabel = formatCapturedAt(post.createdAt);
   const lifeLabel = formatFrameLife(post.expiresAt, post.profileFeatured);
 
@@ -31,6 +31,14 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
   const [forwardVisible, setForwardVisible] = useState(false);
   const [friendsList, setFriendsList] = useState<UserDto[]>(storeFriends);
   const [sentMap, setSentMap] = useState<Record<string, boolean>>({});
+
+  const notifyUser = (title: string, msg: string) => {
+    if (Platform.OS === "web") {
+      if (typeof window !== "undefined") window.alert(`${title}\n${msg}`);
+    } else {
+      Alert.alert(title, msg);
+    }
+  };
 
   const handleDoubleTap = () => {
     const now = Date.now();
@@ -72,26 +80,18 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
     const next = !post.profileFeatured;
     mergePosts([{ ...post, profileFeatured: next }]);
     setOptionsVisible(false);
-    const { post: updated, error } = await setRemotePostProfileFeatured(post.id, next);
+    notifyUser(next ? "Pinned! ★" : "Unpinned", next ? "This Frame is pinned permanently to your profile grid." : "This Frame will now archive once its 24h feed time expires.");
+    const { post: updated } = await setRemotePostProfileFeatured(post.id, next);
     if (updated) mergePosts([updated]);
-    if (error) {
-      Alert.alert("Update failed", error.message);
-    } else {
-      Alert.alert(next ? "Pinned! ★" : "Unpinned", next ? "This Frame is pinned permanently to your profile grid." : "This Frame will now archive once its 24h feed time expires.");
-    }
   };
 
   const togglePrivacy = async () => {
     const nextPrivacy = post.privacy === "PUBLIC" ? "FRIENDS" : "PUBLIC";
     mergePosts([{ ...post, privacy: nextPrivacy }]);
     setOptionsVisible(false);
-    const { post: updated, error } = await updateRemotePostPrivacy(post.id, nextPrivacy);
+    notifyUser("Privacy Updated", nextPrivacy === "PUBLIC" ? "Frame is now Public 🌍" : "Frame is now Friends Only 🔒");
+    const { post: updated } = await updateRemotePostPrivacy(post.id, nextPrivacy);
     if (updated) mergePosts([updated]);
-    if (error) {
-      Alert.alert("Update failed", error.message);
-    } else {
-      Alert.alert("Privacy Updated", nextPrivacy === "PUBLIC" ? "Frame is now Public 🌍" : "Frame is now Friends Only 🔒");
-    }
   };
 
   const confirmDelete = () => {
@@ -145,15 +145,13 @@ export function FrameCard({ post, tilt = "0deg" }: { post: PostDto; tilt?: strin
       <View style={styles.headerRow}>
         <UserHeader user={post.user} meta={`${capturedLabel} • ${post.locationName ?? "No location"}`} />
         <View style={styles.headerRight}>
-          {ownsPost ? (
-            <Pressable accessibilityLabel="Frame options" style={styles.iconBtn} onPress={() => setOptionsVisible(true)}>
-              <AppIcon name="settings" color={palette.ink} size={18} />
-            </Pressable>
-          ) : null}
+          <Pressable accessibilityLabel="Frame options" style={styles.iconBtn} onPress={() => setOptionsVisible(true)}>
+            <AppIcon name="settings" color={palette.ink} size={18} />
+          </Pressable>
         </View>
       </View>
 
-      <Pressable style={styles.media} onPress={handleDoubleTap}>
+      <Pressable style={styles.media} onPress={handleDoubleTap} onLongPress={() => setOptionsVisible(true)}>
         <PolaroidFrame imageUrl={post.mediaUrl} caption={post.caption} frameStyle={post.frameStyle} filterPreset={post.filterPreset} />
         {showHeartPop ? (
           <View style={styles.heartPop}>

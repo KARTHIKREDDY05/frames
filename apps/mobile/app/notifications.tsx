@@ -54,10 +54,10 @@ export default function NotificationsScreen() {
     await load();
   };
 
-  const markRead = () => {
+  const markRead = async () => {
     markNotificationsRead();
-    void markRemoteNotificationsRead();
-    void load();
+    await markRemoteNotificationsRead();
+    await load();
   };
 
   const postNotifications = notifications.filter((item) => !item.recipientId || item.recipientId === currentUser?.id);

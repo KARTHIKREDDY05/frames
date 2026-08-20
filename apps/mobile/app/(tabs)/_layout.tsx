@@ -7,8 +7,8 @@ import { useAppStore } from "../../store/appStore";
 function TabIcon({ name, focused, label }: { name: AppIconName; focused: boolean; label: string }) {
   return (
     <View style={[styles.tabIconWrap, focused && styles.tabIconWrapActive]}>
-      <AppIcon name={name} color={palette.ink} size={19} />
-      <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>{label}</Text>
+      <AppIcon name={name} color={palette.ink} size={20} />
+      <Text numberOfLines={1} style={[styles.tabLabel, focused && styles.tabLabelActive]}>{label}</Text>
     </View>
   );
 }
@@ -30,8 +30,9 @@ export default function TabsLayout() {
           backgroundColor: palette.whitePaper,
           borderTopWidth: 2,
           borderTopColor: palette.ink,
-          height: 72,
-          paddingTop: 8,
+          height: 68,
+          paddingTop: 4,
+          paddingBottom: 4,
           shadowColor: palette.ink,
           shadowOffset: { width: 0, height: -3 },
           shadowOpacity: 0.1,
@@ -53,25 +54,25 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   tabIconWrap: {
+    width: "100%",
+    paddingHorizontal: 4,
+    paddingVertical: 3,
     alignItems: "center",
     justifyContent: "center",
-    gap: 3,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 6
+    borderRadius: 8,
+    gap: 1
   },
   tabIconWrapActive: {
     backgroundColor: palette.acidYellow,
     borderWidth: 1.5,
-    borderColor: palette.ink,
-    transform: [{ rotate: "-1deg" }]
+    borderColor: palette.ink
   },
   tabLabel: {
-    fontSize: 9,
+    fontSize: 9.5,
     fontWeight: "900",
     color: palette.mutedBrown,
-    letterSpacing: 0.5,
-    textTransform: "uppercase"
+    textAlign: "center",
+    includeFontPadding: false
   },
   tabLabelActive: {
     color: palette.ink

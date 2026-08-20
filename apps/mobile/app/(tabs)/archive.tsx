@@ -4,6 +4,7 @@ import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native
 import type { DailyFrameDto, PostDto } from "@frames/types";
 import { palette } from "@frames/ui";
 import { AppIcon } from "../../components/AppIcon";
+import { OrderDailyPackModal } from "../../components/OrderDailyPackModal";
 import { PaperBackground } from "../../components/PaperBackground";
 import { useAppStore } from "../../store/appStore";
 
@@ -29,6 +30,16 @@ export default function ArchiveTimeline() {
   const posts = useAppStore((state) => state.posts);
   const currentUser = useAppStore((state) => state.currentUser);
   const [filter, setFilter] = useState<"all" | "pinned" | "month">("all");
+
+  const [orderModalVisible, setOrderModalVisible] = useState(false);
+  const [selectedPackDate, setSelectedPackDate] = useState("");
+  const [selectedPackPosts, setSelectedPackPosts] = useState<PostDto[]>([]);
+
+  const openOrderPack = (dateTitle: string, packPosts: PostDto[]) => {
+    setSelectedPackDate(dateTitle);
+    setSelectedPackPosts(packPosts);
+    setOrderModalVisible(true);
+  };
 
   const archiveFrames = useMemo(() => {
     const ownPosts = posts.filter((post) => post.user.id === currentUser?.id);
@@ -73,7 +84,7 @@ export default function ArchiveTimeline() {
           <View style={styles.header}>
             <View style={styles.hero}>
               <Text style={styles.kicker}>MEMORY TIMELINE</Text>
-              <Text style={styles.title}>Scrapbook Archive</Text>
+              <Text style={styles.title}>Memory Book</Text>
               <Text style={styles.copy}>Every day you capture becomes an automatic memory page.</Text>
             </View>
 
@@ -129,41 +140,58 @@ export default function ArchiveTimeline() {
           </View>
         }
         renderItem={({ item }) => (
-          <Link href={`/daily/${item.date}`} asChild>
-            <Pressable style={styles.card}>
-              <View style={styles.cardTop}>
-                <View style={styles.dateBadge}>
-                  <Text style={styles.dateMonth}>{formatMonth(item.date)}</Text>
-                  <Text style={styles.dateDay}>{formatDay(item.date)}</Text>
-                </View>
-
-                <View style={styles.cardInfo}>
-                  <Text numberOfLines={1} style={styles.cardTitle}>{item.title}</Text>
-                  <Text style={styles.cardSubtitle}>{item.subtitle} • Latest {formatLatestTime(item.posts)}</Text>
-                </View>
-
-                <Text style={styles.chevron}>›</Text>
-              </View>
-
-              {/* Photo Collage Strip */}
-              <View style={styles.collageRow}>
-                {item.posts.slice(0, 4).map((post, idx) => (
-                  <View key={post.id} style={styles.thumbWrap}>
-                    <Image source={{ uri: post.mediaUrl }} style={styles.thumbImage} />
-                    {post.profileFeatured ? (
-                      <View style={styles.pinnedBadge}><Text style={styles.pinnedBadgeText}>★</Text></View>
-                    ) : null}
-                    {idx === 3 && item.posts.length > 4 ? (
-                      <View style={styles.moreOverlay}>
-                        <Text style={styles.moreText}>+{item.posts.length - 3}</Text>
-                      </View>
-                    ) : null}
+          <View style={styles.card}>
+            <Link href={`/daily/${item.date}`} asChild>
+              <Pressable>
+                <View style={styles.cardTop}>
+                  <View style={styles.dateBadge}>
+                    <Text style={styles.dateMonth}>{formatMonth(item.date)}</Text>
+                    <Text style={styles.dateDay}>{formatDay(item.date)}</Text>
                   </View>
-                ))}
-              </View>
-            </Pressable>
-          </Link>
+
+                  <View style={styles.cardInfo}>
+                    <Text numberOfLines={1} style={styles.cardTitle}>{item.title}</Text>
+                    <Text style={styles.cardSubtitle}>{item.subtitle} • Latest {formatLatestTime(item.posts)}</Text>
+                  </View>
+
+                  <Text style={styles.chevron}>›</Text>
+                </View>
+
+                {/* Photo Collage Strip */}
+                <View style={styles.collageRow}>
+                  {item.posts.slice(0, 4).map((post, idx) => (
+                    <View key={post.id} style={styles.thumbWrap}>
+                      <Image source={{ uri: post.mediaUrl }} style={styles.thumbImage} />
+                      {post.profileFeatured ? (
+                        <View style={styles.pinnedBadge}><Text style={styles.pinnedBadgeText}>★</Text></View>
+                      ) : null}
+                      {idx === 3 && item.posts.length > 4 ? (
+                        <View style={styles.moreOverlay}>
+                          <Text style={styles.moreText}>+{item.posts.length - 3}</Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  ))}
+                </View>
+              </Pressable>
+            </Link>
+
+            {/* Daily Pack Print Button */}
+            <View style={styles.cardFooterRow}>
+              <Pressable style={styles.orderPackBtn} onPress={() => openOrderPack(item.title, item.posts)}>
+                <AppIcon name="spark" color={palette.ink} size={15} />
+                <Text style={styles.orderPackBtnText}>Order Daily Print Pack ($4.99) 📦</Text>
+              </Pressable>
+            </View>
+          </View>
         )}
+      />
+
+      <OrderDailyPackModal
+        visible={orderModalVisible}
+        dateTitle={selectedPackDate}
+        posts={selectedPackPosts}
+        onClose={() => setOrderModalVisible(false)}
       />
     </PaperBackground>
   );
@@ -178,52 +206,139 @@ function formatMonth(dateStr: string) {
 function formatDay(dateStr: string) {
   const d = new Date(`${dateStr}T00:00:00`);
   if (Number.isNaN(d.getTime())) return dateStr.slice(-2);
-  return String(d.getDate());
+  return d.getDate().toString();
 }
 
 function formatLatestTime(posts: PostDto[]) {
-  const latest = [...posts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-  if (!latest) return "today";
-  const date = new Date(latest.createdAt);
-  if (Number.isNaN(date.getTime())) return "today";
-  return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  if (posts.length === 0) return "Recent";
+  const latest = new Date(posts[0]!.createdAt);
+  if (Number.isNaN(latest.getTime())) return "Today";
+  return latest.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 18, paddingTop: 34, paddingBottom: 120, gap: 12 },
-  header: { gap: 14, marginBottom: 6 },
-  hero: { backgroundColor: palette.ink, borderRadius: 14, padding: 20, gap: 6 },
-  kicker: { color: palette.sunshine, fontSize: 11, fontWeight: "900", letterSpacing: 1 },
-  title: { color: palette.whitePaper, fontSize: 30, fontWeight: "900" },
-  copy: { color: "#D8CFC7", lineHeight: 20, fontWeight: "700", fontSize: 14 },
+  content: { padding: 18, paddingBottom: 40, gap: 16 },
+  header: { gap: 16, marginBottom: 8 },
+  hero: { gap: 4 },
+  kicker: { fontSize: 10, fontWeight: "900", color: palette.mutedBrown, letterSpacing: 1.5 },
+  title: { fontSize: 26, fontWeight: "900", color: palette.ink, letterSpacing: -0.5 },
+  copy: { fontSize: 13, fontWeight: "700", color: palette.ink, lineHeight: 18 },
   statsRow: { flexDirection: "row", gap: 10 },
-  statCard: { flex: 1, backgroundColor: palette.whitePaper, borderRadius: 12, borderWidth: 1, borderColor: "#E4D9CA", padding: 12, alignItems: "center" },
-  statNumber: { fontSize: 20, fontWeight: "900", color: palette.ink },
-  statLabel: { fontSize: 11, fontWeight: "800", color: palette.mutedBrown, marginTop: 2 },
+  statCard: {
+    flex: 1,
+    backgroundColor: palette.paperCream,
+    borderWidth: 2,
+    borderColor: palette.ink,
+    borderRadius: 10,
+    padding: 12,
+    alignItems: "center",
+    shadowColor: palette.ink,
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 0.85,
+    shadowRadius: 0
+  },
+  statNumber: { fontSize: 22, fontWeight: "900", color: palette.ink },
+  statLabel: { fontSize: 10, fontWeight: "800", color: palette.mutedBrown, marginTop: 2 },
   filterStrip: { flexDirection: "row", gap: 8 },
-  filterTab: { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 10, backgroundColor: palette.whitePaper, borderWidth: 1, borderColor: "#E4D9CA" },
-  filterTabActive: { backgroundColor: palette.ink, borderColor: palette.ink },
-  filterText: { fontSize: 12, fontWeight: "800", color: palette.mutedBrown },
-  filterTextActive: { color: palette.whitePaper },
-  card: { backgroundColor: palette.whitePaper, borderRadius: 14, borderWidth: 1, borderColor: "#E4D9CA", padding: 14, gap: 12 },
+  filterTab: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: palette.whitePaper,
+    borderWidth: 1.5,
+    borderColor: palette.ink
+  },
+  filterTabActive: {
+    backgroundColor: palette.acidYellow,
+    shadowColor: palette.ink,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.85,
+    shadowRadius: 0
+  },
+  filterText: { fontSize: 11, fontWeight: "800", color: palette.mutedBrown },
+  filterTextActive: { color: palette.ink, fontWeight: "900" },
+  emptyCard: {
+    backgroundColor: palette.paperCream,
+    borderWidth: 2,
+    borderColor: palette.ink,
+    borderRadius: 12,
+    padding: 24,
+    alignItems: "center",
+    gap: 8,
+    marginTop: 12
+  },
+  emptyTitle: { fontSize: 16, fontWeight: "900", color: palette.ink },
+  emptyCopy: { fontSize: 12, fontWeight: "700", color: palette.mutedBrown, textAlign: "center", lineHeight: 18 },
+  emptyCta: {
+    marginTop: 8,
+    backgroundColor: palette.acidYellow,
+    borderWidth: 1.5,
+    borderColor: palette.ink,
+    borderRadius: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8
+  },
+  emptyCtaText: { fontSize: 12, fontWeight: "900", color: palette.ink },
+  card: {
+    backgroundColor: palette.paperCream,
+    borderWidth: 2,
+    borderColor: palette.ink,
+    borderRadius: 12,
+    padding: 14,
+    gap: 12,
+    shadowColor: palette.ink,
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 0.85,
+    shadowRadius: 0
+  },
   cardTop: { flexDirection: "row", alignItems: "center", gap: 12 },
-  dateBadge: { width: 48, height: 48, borderRadius: 10, backgroundColor: palette.ink, alignItems: "center", justifyContent: "center" },
-  dateMonth: { fontSize: 10, fontWeight: "900", color: palette.sunshine },
-  dateDay: { fontSize: 18, fontWeight: "900", color: palette.whitePaper, marginTop: -2 },
+  dateBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    backgroundColor: palette.acidYellow,
+    borderWidth: 1.5,
+    borderColor: palette.ink,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  dateMonth: { fontSize: 9, fontWeight: "900", color: palette.ink },
+  dateDay: { fontSize: 18, fontWeight: "900", color: palette.ink, lineHeight: 20 },
   cardInfo: { flex: 1, gap: 2 },
-  cardTitle: { fontSize: 16, fontWeight: "900", color: palette.ink },
-  cardSubtitle: { fontSize: 12, color: palette.mutedBrown, fontWeight: "700" },
-  chevron: { color: palette.mutedBrown, fontSize: 26, fontWeight: "300" },
+  cardTitle: { fontSize: 15, fontWeight: "900", color: palette.ink },
+  cardSubtitle: { fontSize: 11, fontWeight: "700", color: palette.mutedBrown },
+  chevron: { fontSize: 18, fontWeight: "900", color: palette.ink },
   collageRow: { flexDirection: "row", gap: 8 },
-  thumbWrap: { flex: 1, aspectRatio: 1, borderRadius: 8, overflow: "hidden", backgroundColor: "#E4D9CA", position: "relative" },
+  thumbWrap: { flex: 1, aspectRatio: 1, borderRadius: 6, overflow: "hidden", borderWidth: 1, borderColor: palette.ink, position: "relative" },
   thumbImage: { width: "100%", height: "100%" },
-  pinnedBadge: { position: "absolute", top: 4, left: 4, backgroundColor: palette.ink, width: 18, height: 18, borderRadius: 9, alignItems: "center", justifyContent: "center" },
-  pinnedBadgeText: { color: palette.sunshine, fontSize: 10, fontWeight: "900" },
-  moreOverlay: { position: "absolute", inset: 0, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" },
-  moreText: { color: palette.whitePaper, fontSize: 14, fontWeight: "900" },
-  emptyCard: { backgroundColor: palette.whitePaper, borderRadius: 14, borderWidth: 1, borderColor: "#E4D9CA", marginTop: 40, padding: 28, alignItems: "center", gap: 10 },
-  emptyTitle: { color: palette.ink, fontSize: 20, fontWeight: "900" },
-  emptyCopy: { color: palette.mutedBrown, fontSize: 14, lineHeight: 20, textAlign: "center" },
-  emptyCta: { marginTop: 6, backgroundColor: palette.ink, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 18 },
-  emptyCtaText: { color: palette.whitePaper, fontWeight: "900", fontSize: 14 }
+  pinnedBadge: { position: "absolute", top: 2, right: 2, backgroundColor: palette.acidYellow, width: 14, height: 14, borderRadius: 7, alignItems: "center", justifyContent: "center" },
+  pinnedBadgeText: { fontSize: 8, fontWeight: "900", color: palette.ink },
+  moreOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" },
+  moreText: { color: palette.whitePaper, fontSize: 13, fontWeight: "900" },
+  cardFooterRow: {
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.1)",
+    paddingTop: 10,
+    marginTop: 2
+  },
+  orderPackBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: palette.acidYellow,
+    borderWidth: 1.5,
+    borderColor: palette.ink,
+    borderRadius: 8,
+    paddingVertical: 8,
+    shadowColor: palette.ink,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.85,
+    shadowRadius: 0
+  },
+  orderPackBtnText: {
+    fontSize: 12,
+    fontWeight: "900",
+    color: palette.ink
+  }
 });

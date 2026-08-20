@@ -1,7 +1,8 @@
 import { createClient, type Provider, type User } from "@supabase/supabase-js";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
-import type { FrameStyle, PhotoFilter, PostDto, Privacy, UserDto } from "@frames/types";
+import type { ChatMessageDto, DailyFrameDto, PostDto, UserDto, UserNotificationDto } from "@frames/types";
+import { triggerLocalPushNotification } from "./pushNotificationService";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -571,11 +572,11 @@ export async function createRemoteComment(post: PostDto, text: string) {
 }
 
 export async function fetchRemoteNotifications() {
-  const { data, error } = await supabase
-    .from("Notification")
-    .select("id, userId, type, title, message, read, metadata, createdAt")
-    .order("createdAt", { ascending: false })
-    .limit(80);
+  const { data: authData } = await supabase.auth.getUser();
+  const userId = authData?.user?.id;
+  let query = supabase.from("Notification").select("id, userId, type, title, message, read, metadata, createdAt");
+  if (userId) query = query.eq("userId", userId);
+  const { data, error } = await query.order("createdAt", { ascending: false }).limit(80);
   const notifications = ((data ?? []) as DbNotification[]).map((row) => ({
     id: row.id,
     type: row.type as "FOLLOW_REQUEST" | "FOLLOW_ACCEPTED" | "REACTION" | "COMMENT" | "SHARE" | "ARCHIVE_READY",
@@ -752,6 +753,51 @@ export async function markThreadSeen(threadUserId: string) {
     .eq("receiverId", authData.user.id)
     .neq("status", "SEEN");
   return { error };
+}
+
+export interface PrintOrderPayload {
+  dateTitle: string;
+  photoUrls: string[];
+  shippingName: string;
+  shippingAddress: string;
+  city: string;
+  zipCode: string;
+  totalPrice: string;
+}
+
+export async function createRemotePrintOrder(payload: PrintOrderPayload) {
+  const { data: authData } = await supabase.auth.getUser();
+  const userId = authData?.user?.id ?? "user-guest";
+  const orderId = `FRM-PRINT-${Math.floor(100000 + Math.random() * 900000)}`;
+
+  try {
+    const { error } = await supabase.from("Notification").insert({
+      id: makeId("print_order"),
+      userId,
+      type: "ARCHIVE_READY",
+      title: `Order Placed: ${payload.dateTitle}`,
+      message: `Physical Polaroid Print Pack (${payload.photoUrls.length} Prints) is confirmed. Tracking ID: ${orderId}`,
+      read: false,
+      metadata: {
+        orderId,
+        shippingName: payload.shippingName,
+        shippingAddress: `${payload.shippingAddress}, ${payload.city} ${payload.zipCode}`,
+        totalPrice: payload.totalPrice,
+        photoCount: payload.photoUrls.length,
+        status: "PRINTING_DISPATCHED"
+      }
+    });
+
+    // Trigger OS Mobile Push Notification banner on phone
+    void triggerLocalPushNotification(
+      "Frames Print Order Placed 📦",
+      `Your physical Polaroid pack (${payload.photoUrls.length} Prints) is confirmed. Tracking ID: ${orderId}`
+    );
+
+    return { trackingId: orderId, error };
+  } catch (err: any) {
+    return { trackingId: orderId, error: err };
+  }
 }
 
 
