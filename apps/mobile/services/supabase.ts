@@ -1,8 +1,25 @@
 import { createClient, type Provider, type User } from "@supabase/supabase-js";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
-import type { ChatMessageDto, DailyFrameDto, PostDto, UserDto, UserNotificationDto } from "@frames/types";
+import type { DailyFrameDto, FrameStyle, PhotoFilter, PostDto, Privacy, UserDto } from "@frames/types";
 import { triggerLocalPushNotification } from "./pushNotificationService";
+
+export interface ChatMessageDto {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  text: string;
+  createdAt: string;
+}
+
+export interface UserNotificationDto {
+  id: string;
+  userId: string;
+  title: string;
+  body: string;
+  read: boolean;
+  createdAt: string;
+}
 
 WebBrowser.maybeCompleteAuthSession();
 
