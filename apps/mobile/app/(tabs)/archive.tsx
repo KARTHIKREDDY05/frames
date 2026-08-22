@@ -180,7 +180,7 @@ export default function ArchiveTimeline() {
             <View style={styles.cardFooterRow}>
               <Pressable style={styles.orderPackBtn} onPress={() => openOrderPack(item.title, item.posts)}>
                 <AppIcon name="spark" color={palette.ink} size={15} />
-                <Text style={styles.orderPackBtnText}>Order Daily Print Pack ($4.99) 📦</Text>
+                <Text style={styles.orderPackBtnText}>Order Daily Print Pack (₹199) 📦</Text>
               </Pressable>
             </View>
           </View>

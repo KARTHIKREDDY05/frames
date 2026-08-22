@@ -57,7 +57,7 @@ export default function DailyFrameScreen() {
 
         <Pressable style={styles.orderBannerBtn} onPress={() => setOrderModalVisible(true)}>
           <AppIcon name="spark" color={palette.ink} size={16} />
-          <Text style={styles.orderBannerBtnText}>Order Physical Print Pack ($4.99) 📦</Text>
+          <Text style={styles.orderBannerBtnText}>Order Physical Print Pack (₹199) 📦</Text>
         </Pressable>
       </View>
 

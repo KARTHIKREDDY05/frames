@@ -23,6 +23,8 @@ export interface UserNotificationDto {
 
 WebBrowser.maybeCompleteAuthSession();
 
+import { universalStorage } from "./universalStorage";
+
 export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? "https://fjhfmxpuyijwinvmqsch.supabase.co";
 export const SUPABASE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "sb_publishable_hKlYOlHiS9ApC6y55NTPVg_oD9ZQWSs";
 const enabledOAuthProviders = (process.env.EXPO_PUBLIC_ENABLED_OAUTH_PROVIDERS ?? "google")
@@ -32,6 +34,7 @@ const enabledOAuthProviders = (process.env.EXPO_PUBLIC_ENABLED_OAUTH_PROVIDERS ?
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
+    storage: universalStorage,
     autoRefreshToken: true,
     detectSessionInUrl: true,
     persistSession: true

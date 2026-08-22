@@ -50,12 +50,15 @@
       "url": "https://u.expo.dev/ab4bf3f3-1c17-4513-8943-7afc5ec68d18"
     },
     "web": {
+      "bundler": "metro",
+      "output": "static",
       "name": "Frames",
       "shortName": "Frames",
       "themeColor": "#F6F0E7",
       "backgroundColor": "#F6F0E7",
       "description": "Frames is a social scrapbook app for capturing daily moments, following friends, and turning posts into memories."
     },
+
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.frames.mobile"

@@ -45,14 +45,56 @@ export const photoFilterOptions: Array<{ label: string; value: PhotoFilter; tint
   { label: "Sunset", value: "SUNSET", tint: "#FF6B3A", opacity: 0.24 }
 ];
 
-export function PolaroidFrame({ imageUrl, caption, frameStyle = "POLAROID", filterPreset = "ORIGINAL" }: { imageUrl: string; caption?: string | null; frameStyle?: FrameStyle; filterPreset?: PhotoFilter }) {
+export const MAGNET_STAMP_OPTIONS: Array<{ label: string; value: string | null; icon: string }> = [
+  { label: "None", value: null, icon: "⊘" },
+  { label: "Cherry", value: "cherry", icon: "🍒" },
+  { label: "Lemon", value: "lemon", icon: "🍋" },
+  { label: "Star", value: "star", icon: "⭐" },
+  { label: "Sakura", value: "flower", icon: "🌸" },
+  { label: "Heart", value: "heart", icon: "❤️" },
+  { label: "Clover", value: "clover", icon: "🍀" },
+  { label: "Clip", value: "polaroid_clip", icon: "📎" },
+  { label: "Airmail", value: "airmail", icon: "📮" },
+  { label: "Wax Seal", value: "wax_seal", icon: "🏷️" }
+];
+
+export const MAGNET_ICON_MAP: Record<string, string> = {
+  cherry: "🍒",
+  lemon: "🍋",
+  star: "⭐",
+  flower: "🌸",
+  heart: "❤️",
+  clover: "🍀",
+  polaroid_clip: "📎",
+  airmail: "📮",
+  wax_seal: "🏷️"
+};
+
+export function PolaroidFrame({
+  imageUrl,
+  caption,
+  frameStyle = "POLAROID",
+  filterPreset = "ORIGINAL",
+  magnetStamp = null
+}: {
+  imageUrl: string;
+  caption?: string | null;
+  frameStyle?: FrameStyle;
+  filterPreset?: PhotoFilter;
+  magnetStamp?: string | null;
+}) {
   const showCaption = frameStyle !== "MINIMAL" && frameStyle !== "CINEMA";
   const isDark = frameStyle === "FILMSTRIP" || frameStyle === "NEGATIVE_STRIP" || frameStyle === "CINEMA";
-  const needsTape = ["POLAROID", "TORN_PAPER", "WASHI_COLLAGE", "NOTEBOOK"].includes(frameStyle);
+  const needsTape = ["POLAROID", "TORN_PAPER", "WASHI_COLLAGE", "NOTEBOOK"].includes(frameStyle) && !magnetStamp;
   const filter = photoFilterOptions.find((option) => option.value === filterPreset) ?? photoFilterOptions[0]!;
 
   return (
     <View style={[styles.card, cardStyleByFrame[frameStyle]]}>
+      {magnetStamp && MAGNET_ICON_MAP[magnetStamp] ? (
+        <View style={styles.magnetPinBadge}>
+          <Text style={styles.magnetPinEmoji}>{MAGNET_ICON_MAP[magnetStamp]}</Text>
+        </View>
+      ) : null}
       {needsTape ? <WashiTape /> : null}
       {frameStyle === "FILMSTRIP" || frameStyle === "NEGATIVE_STRIP" ? <FilmRail position="top" negative={frameStyle === "NEGATIVE_STRIP"} /> : null}
       {frameStyle === "CONTACT_SHEET" ? <ContactSheet /> : null}
@@ -186,8 +228,31 @@ const styles = StyleSheet.create({
   washiPiece: { position: "absolute", height: 18, borderRadius: 3, opacity: 0.9 },
   washiOne: { top: 12, left: -10, width: 92, backgroundColor: palette.sunshine, transform: [{ rotate: "-12deg" }] },
   washiTwo: { right: -8, top: 18, width: 76, backgroundColor: palette.powderBlue, transform: [{ rotate: "14deg" }] },
-  washiThree: { bottom: 10, left: "35%", width: 90, backgroundColor: palette.softPeach, transform: [{ rotate: "4deg" }] }
+  washiThree: { bottom: 10, left: "35%", width: 90, backgroundColor: palette.softPeach, transform: [{ rotate: "4deg" }] },
+  magnetPinBadge: {
+    position: "absolute",
+    top: -14,
+    alignSelf: "center",
+    zIndex: 99,
+    backgroundColor: palette.whitePaper,
+    borderWidth: 1.5,
+    borderColor: palette.ink,
+    borderRadius: 20,
+    width: 38,
+    height: 38,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: palette.ink,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 0,
+    transform: [{ rotate: "-4deg" }]
+  },
+  magnetPinEmoji: {
+    fontSize: 20
+  }
 });
+
 
 const cardStyleByFrame: Record<FrameStyle, StyleProp<ViewStyle>> = {
   POLAROID: styles.POLAROID,

@@ -23,6 +23,30 @@
       "defaultPrivacy": "FRIENDS",
       "createdAt": "2026-08-17T16:43:10.625Z",
       "updatedAt": "2026-08-17T16:43:10.625Z"
+    },
+    {
+      "id": "user_fd33a371-0580-4383-9e5b-e8f8ab06cd04",
+      "username": "printuser_1787248533044",
+      "displayName": "Print Test User",
+      "email": "printtest_1787248533044@frames.local",
+      "passwordHash": "$2a$10$WuwK6mQDYBVMH7fD3g3zvOZ86p0EVn6hd9zkYnyf7JZ9T1xM3pbgC",
+      "avatarUrl": "https://i.pravatar.cc/160?u=printtest_1787248533044%40frames.local",
+      "bio": "",
+      "defaultPrivacy": "FRIENDS",
+      "createdAt": "2026-08-20T17:55:33.107Z",
+      "updatedAt": "2026-08-20T17:55:33.107Z"
+    },
+    {
+      "id": "user_3db45b50-e5d0-4b4a-a22a-38fbfe42acfe",
+      "username": "printuser_1787372464724",
+      "displayName": "Print Test User",
+      "email": "printtest_1787372464724@frames.local",
+      "passwordHash": "$2a$10$ZZ/fTZ.N1oWu5d7qgNvfG.FRXGkYXLqOHSb9U.IvQdQq5QLF.5.PC",
+      "avatarUrl": "https://i.pravatar.cc/160?u=printtest_1787372464724%40frames.local",
+      "bio": "",
+      "defaultPrivacy": "FRIENDS",
+      "createdAt": "2026-08-22T04:21:04.810Z",
+      "updatedAt": "2026-08-22T04:21:04.810Z"
     }
   ],
   "friendships": [],
@@ -66,6 +90,61 @@
   ],
   "notifications": [
     {
+      "id": "notification_fa679388-5e94-49a6-8fdf-5aae0149652e",
+      "userId": "user_3db45b50-e5d0-4b4a-a22a-38fbfe42acfe",
+      "type": "print_order_shipped",
+      "title": "Order Shipped! 🚚",
+      "message": "Your physical order has shipped. Tracking number: TRK-POD-LAB-998877",
+      "read": false,
+      "metadata": {
+        "orderId": "FRM-PRINT-227799",
+        "trackingNumber": "TRK-POD-LAB-998877"
+      },
+      "createdAt": "2026-08-22T04:21:04.986Z"
+    },
+    {
+      "id": "notification_044f1fa0-c489-4e6f-85cf-c8541fcc172d",
+      "userId": "user_3db45b50-e5d0-4b4a-a22a-38fbfe42acfe",
+      "type": "print_order_placed",
+      "title": "Polaroid Print Pack Placed 📦",
+      "message": "Your physical Polaroid Print Pack order is confirmed. Tracking ID: FRM-PRINT-227799",
+      "read": false,
+      "metadata": {
+        "orderId": "FRM-PRINT-227799",
+        "trackingNumber": "TRK-POD-53186619",
+        "estimatedDelivery": "2026-08-26T04:21:04.965Z",
+        "productType": "POLAROID_PACK"
+      },
+      "createdAt": "2026-08-22T04:21:04.965Z"
+    },
+    {
+      "id": "notification_ae92a8c1-163d-4042-8053-f945e0675525",
+      "userId": "user_fd33a371-0580-4383-9e5b-e8f8ab06cd04",
+      "type": "print_order_shipped",
+      "title": "Polaroid Pack Shipped! 🚚",
+      "message": "Your physical prints have shipped. Tracking number: TRK-POD-LAB-998877",
+      "read": false,
+      "metadata": {
+        "orderId": "FRM-PRINT-391589",
+        "trackingNumber": "TRK-POD-LAB-998877"
+      },
+      "createdAt": "2026-08-20T17:55:33.232Z"
+    },
+    {
+      "id": "notification_8180e780-6ad3-491f-8509-c392650cf216",
+      "userId": "user_fd33a371-0580-4383-9e5b-e8f8ab06cd04",
+      "type": "print_order_placed",
+      "title": "Frames Print Order Placed 📦",
+      "message": "Your physical Polaroid pack (3 Prints) is confirmed. Tracking ID: FRM-PRINT-391589",
+      "read": false,
+      "metadata": {
+        "orderId": "FRM-PRINT-391589",
+        "trackingNumber": "TRK-POD-29351074",
+        "estimatedDelivery": "2026-08-24T17:55:33.220Z"
+      },
+      "createdAt": "2026-08-20T17:55:33.220Z"
+    },
+    {
       "id": "notification_dbff10bc-2b29-449c-8d45-f0d817cd5172",
       "userId": "user_97e1a662-6980-4e0b-9b90-5691507ad071",
       "type": "daily_frame_ready",
@@ -78,5 +157,59 @@
       "createdAt": "2026-08-17T16:43:10.878Z"
     }
   ],
-  "shareLinks": []
+  "shareLinks": [],
+  "printOrders": [
+    {
+      "id": "print_order_ddb86ea8-55e8-4321-80e2-256edf5de223",
+      "orderId": "FRM-PRINT-227799",
+      "userId": "user_3db45b50-e5d0-4b4a-a22a-38fbfe42acfe",
+      "dateTitle": "August 20, 2026",
+      "photoUrls": [
+        "https://picsum.photos/seed/print1/800/1000",
+        "https://picsum.photos/seed/print2/800/1000",
+        "https://picsum.photos/seed/print3/800/1000"
+      ],
+      "shippingAddress": {
+        "name": "Karthik Reddy",
+        "addressLine1": "456 Polaroid Avenue",
+        "city": "Bengaluru",
+        "zipCode": "560001",
+        "country": "IN"
+      },
+      "totalPrice": "$4.99",
+      "status": "SHIPPED",
+      "partnerOrderId": "PRODIGI-FRM-PRINT-227799",
+      "trackingNumber": "TRK-POD-LAB-998877",
+      "estimatedDelivery": "2026-08-24T04:21:04.983Z",
+      "productType": "POLAROID_PACK",
+      "quantity": 1,
+      "createdAt": "2026-08-22T04:21:04.965Z",
+      "updatedAt": "2026-08-22T04:21:04.986Z"
+    },
+    {
+      "id": "print_order_edc89a31-c6f8-494f-bc10-ea59de770c7f",
+      "orderId": "FRM-PRINT-391589",
+      "userId": "user_fd33a371-0580-4383-9e5b-e8f8ab06cd04",
+      "dateTitle": "August 20, 2026",
+      "photoUrls": [
+        "https://picsum.photos/seed/print1/800/1000",
+        "https://picsum.photos/seed/print2/800/1000",
+        "https://picsum.photos/seed/print3/800/1000"
+      ],
+      "shippingAddress": {
+        "name": "Karthik Reddy",
+        "addressLine1": "456 Polaroid Avenue",
+        "city": "Bengaluru",
+        "zipCode": "560001",
+        "country": "IN"
+      },
+      "totalPrice": "$4.99",
+      "status": "SHIPPED",
+      "partnerOrderId": "PRODIGI-FRM-PRINT-391589",
+      "trackingNumber": "TRK-POD-LAB-998877",
+      "estimatedDelivery": "2026-08-22T17:55:33.230Z",
+      "createdAt": "2026-08-20T17:55:33.220Z",
+      "updatedAt": "2026-08-20T17:55:33.232Z"
+    }
+  ]
 }

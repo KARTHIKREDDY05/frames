@@ -1,4 +1,4 @@
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { FlatList, Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { UserDto } from "@frames/types";
@@ -135,40 +135,51 @@ export default function ChatsScreen() {
           const mine = last?.fromUserId === currentUser?.id;
 
           return (
-            <Link key={user.id} href={`/chat/${user.id}`} asChild>
-              <Pressable style={[styles.chatCard, unreadCount > 0 && styles.chatCardUnread]}>
-                <View style={styles.avatarWrap}>
-                  <Image source={{ uri: user.avatarUrl ?? undefined }} style={styles.avatar} />
-                  {presence.online ? <View style={styles.onlineBadge} /> : null}
+            <Pressable
+              key={user.id}
+              style={[styles.chatCard, unreadCount > 0 && styles.chatCardUnread]}
+              onPress={() => router.push(`/chat/${user.id}`)}
+            >
+              <View style={styles.avatarWrap}>
+                <Image
+                  source={{ uri: user.avatarUrl || `https://i.pravatar.cc/160?u=${encodeURIComponent(user.id)}` }}
+                  style={styles.avatar}
+                />
+                {presence.online ? <View style={styles.onlineBadge} /> : null}
+              </View>
+
+              <View style={styles.meta}>
+                <View style={styles.nameRow}>
+                  <Text numberOfLines={1} style={styles.name}>{user.displayName}</Text>
+                  <Text style={styles.time}>{last ? formatChatTime(last.createdAt) : "Ready"}</Text>
                 </View>
 
-                <View style={styles.meta}>
-                  <View style={styles.nameRow}>
-                    <Text numberOfLines={1} style={styles.name}>{user.displayName}</Text>
-                    <Text style={styles.time}>{last ? formatChatTime(last.createdAt) : "Ready"}</Text>
-                  </View>
-
-                  <View style={styles.snippetRow}>
-                    <View style={styles.snippetLeft}>
-                      {mine && last ? (
-                        <Text style={[styles.tick, last.status === "SEEN" && styles.tickBlue]}>
-                          {last.status === "SEEN" ? "✓✓ " : last.status === "DELIVERED" ? "✓✓ " : "✓ "}
-                        </Text>
-                      ) : null}
-                      <Text numberOfLines={1} style={[styles.preview, unreadCount > 0 && styles.previewBold]}>
-                        {last ? (last.mediaUrl && !last.text ? "📷 Photo Frame" : last.text) : "Tap to start chatting..."}
+                <View style={styles.snippetRow}>
+                  <View style={styles.snippetLeft}>
+                    {mine && last ? (
+                      <Text style={[styles.tick, last.status === "SEEN" && styles.tickBlue]}>
+                        {last.status === "SEEN" ? "✓✓ " : last.status === "DELIVERED" ? "✓✓ " : "✓ "}
                       </Text>
-                    </View>
-
-                    {unreadCount > 0 ? (
-                      <View style={styles.unreadBadge}>
-                        <Text style={styles.unreadCountText}>{unreadCount}</Text>
-                      </View>
                     ) : null}
+                    <Text numberOfLines={1} style={[styles.preview, unreadCount > 0 && styles.previewBold]}>
+                      {last
+                        ? last.mediaType === "VOICE"
+                          ? `🎙️ Voice Note (${last.audioDurationSec || 8}s)`
+                          : last.mediaUrl && !last.text
+                          ? "📷 Photo Frame"
+                          : last.text
+                        : "Tap to start chatting..."}
+                    </Text>
                   </View>
+
+                  {unreadCount > 0 ? (
+                    <View style={styles.unreadBadge}>
+                      <Text style={styles.unreadCountText}>{unreadCount}</Text>
+                    </View>
+                  ) : null}
                 </View>
-              </Pressable>
-            </Link>
+              </View>
+            </Pressable>
           );
         }}
       />

@@ -7,6 +7,15 @@ import { z } from "zod";
 import { requireAuth } from "../../middleware/auth.js";
 import { signAccessToken } from "../../services/jwt.js";
 import { HttpError } from "../../utils/errors.js";
+import {
+  calculatePackPrice,
+  dispatchOrderToPrintPartner,
+  getPrintPricingInfo
+} from "../../services/printPartner.service.js";
+import {
+  createPaymentOrder,
+  verifyPaymentSignature
+} from "../../services/payment.service.js";
 
 type Privacy = "PUBLIC" | "FRIENDS";
 type FrameStyle = "POLAROID" | "FILMSTRIP" | "TORN_PAPER" | "STICKER" | "MINIMAL" | "VINTAGE";
@@ -65,11 +74,34 @@ interface LocalDailyFrame {
   updatedAt: string;
 }
 
+interface LocalPrintOrder {
+  id: string;
+  orderId: string;
+  userId: string;
+  dateTitle: string;
+  photoUrls: string[];
+  shippingAddress: {
+    name: string;
+    addressLine1: string;
+    city: string;
+    zipCode: string;
+    country: string;
+  };
+  totalPrice: string;
+  status: "PENDING" | "SUBMITTED" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "FAILED";
+  partnerOrderId?: string | null;
+  trackingNumber?: string | null;
+  estimatedDelivery?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface LocalDb {
   users: LocalUser[];
   friendships: LocalFriendship[];
   posts: LocalPost[];
   dailyFrames: LocalDailyFrame[];
+  printOrders: LocalPrintOrder[];
   notifications: Array<{ id: string; userId: string; type: string; title: string; message: string; read: boolean; metadata: Record<string, unknown>; createdAt: string }>;
   shareLinks: Array<Record<string, unknown>>;
 }
@@ -104,10 +136,12 @@ function seedDb(): LocalDb {
     friendships: [],
     posts: [],
     dailyFrames: [],
+    printOrders: [],
     notifications: [],
     shareLinks: []
   };
 }
+
 
 function readDb(): LocalDb {
   if (!existsSync(dbPath)) {
@@ -346,4 +380,258 @@ router.get("/notifications", requireAuth, (req, res) => {
   res.json({ items: db.notifications.filter((item) => item.userId === req.userId), nextCursor: null });
 });
 
+// Print APIs (Local JSON DB mode)
+router.get("/print/pricing", (_req, res) => {
+  res.json(getPrintPricingInfo());
+});
+
+router.get("/print/orders", requireAuth, (req, res) => {
+  const db = readDb();
+  const orders = (db.printOrders || []).filter((order) => order.userId === req.userId);
+  res.json({ items: orders });
+});
+
+router.get("/print/orders/:id", requireAuth, (req, res) => {
+  const db = readDb();
+  const order = (db.printOrders || []).find(
+    (item) => item.userId === req.userId && (item.id === req.params.id || item.orderId === req.params.id)
+  );
+  if (!order) throw new HttpError(404, "Print order not found", "ORDER_NOT_FOUND");
+  res.json(order);
+});
+
+router.post("/print/orders", requireAuth, async (req, res) => {
+  const body = z
+    .object({
+      dateTitle: z.string().min(1),
+      photoUrls: z.array(z.string()).min(1),
+      shippingName: z.string().min(1),
+      shippingAddress: z.string().min(1),
+      city: z.string().min(1),
+      zipCode: z.string().min(1),
+      country: z.string().optional().default("IN"),
+      totalPrice: z.string().optional(),
+      productType: z.enum(["POLAROID_PACK", "FRIDGE_MAGNETS", "SCRAPBOOK_ALBUM", "KEEPSAKE_CAPSULE"]).optional(),
+      quantity: z.number().optional().default(1),
+      magnetTypes: z.array(z.string()).optional(),
+      giftNote: z.string().optional()
+    })
+    .parse(req.body);
+
+  const db = readDb();
+  if (!db.printOrders) db.printOrders = [];
+
+  const productType = body.productType || "POLAROID_PACK";
+  const orderId = `FRM-PRINT-${Math.floor(100000 + Math.random() * 900000)}`;
+  const finalPrice = body.totalPrice || calculatePackPrice(body.photoUrls.length, productType);
+  const currentTime = now();
+
+  const dispatchResult = await dispatchOrderToPrintPartner(
+    orderId,
+    {
+      name: body.shippingName,
+      address: body.shippingAddress,
+      city: body.city,
+      zip: body.zipCode,
+      country: body.country
+    },
+    body.photoUrls,
+    productType
+  );
+
+
+  const printOrder: LocalPrintOrder & { productType?: string; quantity?: number; magnetTypes?: string[]; giftNote?: string } = {
+    id: id("print_order"),
+    orderId,
+    userId: req.userId!,
+    dateTitle: body.dateTitle,
+    photoUrls: body.photoUrls,
+    shippingAddress: {
+      name: body.shippingName,
+      addressLine1: body.shippingAddress,
+      city: body.city,
+      zipCode: body.zipCode,
+      country: body.country
+    },
+    totalPrice: finalPrice,
+    status: dispatchResult.success ? "SUBMITTED" : "FAILED",
+    partnerOrderId: dispatchResult.partnerOrderId,
+    trackingNumber: dispatchResult.trackingNumber,
+    estimatedDelivery: dispatchResult.estimatedDelivery,
+    productType,
+    quantity: body.quantity,
+    magnetTypes: body.magnetTypes,
+    giftNote: body.giftNote,
+    createdAt: currentTime,
+    updatedAt: currentTime
+  };
+
+  db.printOrders.unshift(printOrder as any);
+
+  const productLabel =
+    productType === "FRIDGE_MAGNETS"
+      ? "Ceramic Fridge Magnets"
+      : productType === "SCRAPBOOK_ALBUM"
+      ? "Hardcover Scrapbook"
+      : productType === "KEEPSAKE_CAPSULE"
+      ? "Keepsake Tin Capsule"
+      : "Polaroid Print Pack";
+
+  db.notifications.unshift({
+    id: id("notification"),
+    userId: req.userId!,
+    type: "print_order_placed",
+    title: `${productLabel} Placed 📦`,
+    message: `Your physical ${productLabel} order is confirmed. Tracking ID: ${orderId}`,
+    read: false,
+    metadata: {
+      orderId,
+      trackingNumber: printOrder.trackingNumber,
+      estimatedDelivery: printOrder.estimatedDelivery,
+      productType
+    },
+    createdAt: currentTime
+  });
+
+  writeDb(db);
+  res.status(201).json(printOrder);
+});
+
+router.post("/print/orders/:id/simulate-status", requireAuth, (req, res) => {
+  const body = z
+    .object({
+      status: z.enum(["SUBMITTED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED", "FAILED"])
+    })
+    .parse(req.body);
+
+  const db = readDb();
+  if (!db.printOrders) db.printOrders = [];
+  const order = db.printOrders.find((o) => o.id === req.params.id || o.orderId === req.params.id);
+
+  if (!order) throw new HttpError(404, "Order not found", "ORDER_NOT_FOUND");
+
+  order.status = body.status;
+  if (!order.trackingNumber) {
+    order.trackingNumber = `TRK-SIM-${Math.floor(1000000 + Math.random() * 9000000)}`;
+  }
+  order.updatedAt = now();
+
+  if (["SHIPPED", "DELIVERED"].includes(body.status)) {
+    db.notifications.unshift({
+      id: id("notification"),
+      userId: order.userId,
+      type: `print_order_${body.status.toLowerCase()}`,
+      title: body.status === "SHIPPED" ? "Order Shipped! 🚚" : "Order Delivered! 🎉",
+      message:
+        body.status === "SHIPPED"
+          ? `Your physical order has shipped. Tracking number: ${order.trackingNumber || order.orderId}`
+          : `Your physical order for ${order.dateTitle} has been delivered!`,
+      read: false,
+      metadata: { orderId: order.orderId, trackingNumber: order.trackingNumber },
+      createdAt: now()
+    });
+  }
+
+  writeDb(db);
+  res.json({ ok: true, orderId: order.orderId, status: order.status, trackingNumber: order.trackingNumber });
+});
+
+router.post("/print/orders/:id/cancel", requireAuth, (req, res) => {
+  const db = readDb();
+  if (!db.printOrders) db.printOrders = [];
+  const order = db.printOrders.find((o) => o.id === req.params.id || o.orderId === req.params.id);
+
+  if (!order) throw new HttpError(404, "Order not found", "ORDER_NOT_FOUND");
+
+  if (order.status === "SHIPPED" || order.status === "DELIVERED") {
+    throw new HttpError(400, "Cannot cancel an order that has already shipped", "ORDER_ALREADY_SHIPPED");
+  }
+
+  order.status = "CANCELLED";
+  order.updatedAt = now();
+  writeDb(db);
+
+  res.json({ ok: true, orderId: order.orderId, status: "CANCELLED" });
+});
+
+router.post("/print/webhook", (req, res) => {
+  const body = z
+    .object({
+      merchantReference: z.string(),
+      status: z.enum(["SUBMITTED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED", "FAILED"]),
+      trackingNumber: z.string().optional(),
+      estimatedDelivery: z.string().optional()
+    })
+    .parse(req.body);
+
+  const db = readDb();
+  if (!db.printOrders) db.printOrders = [];
+  const order = db.printOrders.find((o) => o.orderId === body.merchantReference);
+
+  if (!order) throw new HttpError(404, "Order reference not found", "ORDER_NOT_FOUND");
+
+  order.status = body.status;
+  if (body.trackingNumber) order.trackingNumber = body.trackingNumber;
+  if (body.estimatedDelivery) order.estimatedDelivery = body.estimatedDelivery;
+  order.updatedAt = now();
+
+  if (["SHIPPED", "DELIVERED"].includes(body.status)) {
+    db.notifications.unshift({
+      id: id("notification"),
+      userId: order.userId,
+      type: `print_order_${body.status.toLowerCase()}`,
+      title: body.status === "SHIPPED" ? "Order Shipped! 🚚" : "Order Delivered! 🎉",
+      message:
+        body.status === "SHIPPED"
+          ? `Your physical order has shipped. Tracking number: ${order.trackingNumber || order.orderId}`
+          : `Your physical order for ${order.dateTitle} has been delivered!`,
+      read: false,
+      metadata: { orderId: order.orderId, trackingNumber: order.trackingNumber },
+      createdAt: now()
+    });
+  }
+
+  writeDb(db);
+  res.json({ ok: true, orderId: order.orderId, status: order.status });
+});
+
+// POST /payments/create-order or /print/create-payment-order
+router.post(["/payments/create-order", "/print/create-payment-order"], async (req, res) => {
+  const schema = z.object({
+    amountInPaise: z.number().positive(),
+    currency: z.string().default("INR"),
+    receipt: z.string(),
+    notes: z.record(z.string()).optional(),
+    productType: z.string().optional(),
+    provider: z.enum(["RAZORPAY", "STRIPE", "UPI_DIRECT"]).default("RAZORPAY")
+  });
+
+  const body = schema.parse(req.body);
+  const order = await createPaymentOrder({
+    amountInPaise: body.amountInPaise,
+    currency: body.currency,
+    receipt: body.receipt,
+    notes: body.notes,
+    provider: body.provider as any
+  });
+
+  res.json(order);
+});
+
+// POST /payments/verify or /print/verify-payment
+router.post(["/payments/verify", "/print/verify-payment"], async (req, res) => {
+  const schema = z.object({
+    paymentOrderId: z.string(),
+    paymentId: z.string(),
+    signature: z.string().optional(),
+    orderId: z.string().optional()
+  });
+
+  const body = schema.parse(req.body);
+  const result = verifyPaymentSignature(body);
+  res.json(result);
+});
+
 export default router;
+
+

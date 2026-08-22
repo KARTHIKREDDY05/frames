@@ -122,6 +122,7 @@ export default function RootLayout() {
             <Stack.Screen name="settings" />
             <Stack.Screen name="share" options={{ presentation: "modal" }} />
             <Stack.Screen name="export" options={{ presentation: "modal" }} />
+            <Stack.Screen name="orders" />
           </Stack>
 
           {toast ? (

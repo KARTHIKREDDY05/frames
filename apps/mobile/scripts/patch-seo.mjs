@@ -22,3 +22,22 @@ const updated = html
   .replace("</head>", `${seo}\n  </head>`);
 
 writeFileSync(indexPath, updated);
+
+// Create 404.html fallback for client-side SPA routing
+const notFoundPath = join(process.cwd(), "dist", "404.html");
+writeFileSync(notFoundPath, updated);
+
+// Write vercel.json with SPA rewrites
+const vercelJsonPath = join(process.cwd(), "dist", "vercel.json");
+const vercelConfig = JSON.stringify(
+  {
+    cleanUrls: true,
+    rewrites: [
+      { source: "/(.*)", destination: "/index.html" }
+    ]
+  },
+  null,
+  2
+);
+writeFileSync(vercelJsonPath, vercelConfig);
+

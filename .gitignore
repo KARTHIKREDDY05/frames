@@ -7,3 +7,6 @@ coverage
 .turbo
 *.log
 services/api/prisma/dev.db
+
+.vercel
+scratch/

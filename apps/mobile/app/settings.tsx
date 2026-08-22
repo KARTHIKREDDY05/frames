@@ -293,6 +293,13 @@ export default function Settings() {
         onPress={() => { void save(); }}
       />
 
+      <FrameButton
+        icon="archive"
+        label="Print Order History 📦"
+        variant="secondary"
+        onPress={() => router.push("/orders")}
+      />
+
       <ImageCropperModal
         visible={cropperVisible}
         imageUri={rawPickedUri}

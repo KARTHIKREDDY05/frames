@@ -109,3 +109,113 @@ export interface Page<T> {
   items: T[];
   nextCursor: string | null;
 }
+
+export type PrintOrderStatus =
+  | "PENDING"
+  | "SUBMITTED"
+  | "PROCESSING"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED"
+  | "FAILED";
+
+export interface PrintShippingAddress {
+  name: string;
+  addressLine1: string;
+  city: string;
+  zipCode: string;
+  country?: string;
+}
+
+export interface PrintOrderDto {
+  id: string;
+  orderId: string;
+  userId: string;
+  dateTitle: string;
+  photoUrls: string[];
+  shippingAddress: PrintShippingAddress;
+  totalPrice: string;
+  status: PrintOrderStatus;
+  partnerOrderId?: string | null;
+  trackingNumber?: string | null;
+  estimatedDelivery?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+export type ProductType =
+  | "POLAROID_PACK"
+  | "FRIDGE_MAGNETS"
+  | "SCRAPBOOK_ALBUM"
+  | "KEEPSAKE_CAPSULE";
+
+export interface CreatePrintOrderRequest {
+  dateTitle: string;
+  photoUrls: string[];
+  shippingName: string;
+  shippingAddress: string;
+  city: string;
+  zipCode: string;
+  country?: string;
+  totalPrice?: string;
+  productType?: ProductType;
+  quantity?: number;
+  magnetTypes?: string[];
+  giftNote?: string;
+}
+
+export interface PrintPricingOption {
+  id: string;
+  productType?: ProductType;
+  name: string;
+  description: string;
+  paperStock: string;
+  dimensions: string;
+  basePrice: string;
+  tierPrice: string;
+  currency: string;
+  shippingEstimateDays: string;
+  badge?: string;
+  icon?: string;
+}
+
+export interface PrintPricingDto {
+  currency: string;
+  defaultSku: string;
+  options: PrintPricingOption[];
+}
+
+export type PaymentProvider = "RAZORPAY" | "STRIPE" | "UPI_DIRECT";
+
+export interface CreatePaymentOrderRequest {
+  amountInPaise: number;
+  currency: string;
+  receipt: string;
+  notes?: Record<string, string>;
+  productType?: ProductType;
+  provider?: PaymentProvider;
+}
+
+export interface PaymentOrderResponse {
+  paymentOrderId: string;
+  keyId?: string;
+  amount: number;
+  currency: string;
+  provider: PaymentProvider;
+  clientSecret?: string;
+  status: "CREATED" | "PROCESSING" | "PAID";
+}
+
+export interface VerifyPaymentRequest {
+  paymentOrderId: string;
+  paymentId: string;
+  signature?: string;
+  orderId?: string;
+}
+
+export interface VerifyPaymentResponse {
+  verified: boolean;
+  transactionId: string;
+  status: string;
+}
+
+

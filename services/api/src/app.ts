@@ -17,6 +17,7 @@ import searchRoutes from "./modules/search/search.routes.js";
 import shareRoutes from "./modules/share/share.routes.js";
 import uploadsRoutes from "./modules/uploads/uploads.routes.js";
 import usersRoutes from "./modules/users/users.routes.js";
+import printRoutes from "./modules/print/print.routes.js";
 import { errorHandler } from "./utils/errors.js";
 import { env } from "./runtime/env.js";
 import localRoutes from "./modules/local/local.routes.js";
@@ -59,6 +60,7 @@ export function createApp() {
   app.use("/uploads", uploadsRoutes);
   app.use("/notifications", notificationsRoutes);
   app.use("/exports", exportsRoutes);
+  app.use("/print", printRoutes);
   if (env.NODE_ENV !== "production") app.use("/dev", devRoutes);
   app.use(errorHandler);
   return app;

@@ -9,6 +9,7 @@ export type AppIconName =
   | "camera"
   | "check"
   | "clock"
+  | "close"
   | "comment"
   | "delete"
   | "flash"
@@ -25,6 +26,8 @@ export type AppIconName =
   | "search"
   | "send"
   | "settings"
+  | "share"
+  | "shopping-bag"
   | "sign-out"
   | "spark"
   | "switch"
@@ -188,6 +191,28 @@ function renderGlyph(name: AppIconName, color: string, size: number) {
         <View style={{ width: "100%", height: "100%", alignItems: "center", justifyContent: "center" }}>
           <View style={{ width: "35%", height: stroke * 1.2, backgroundColor: color, position: "absolute", left: "15%", bottom: "35%", transform: [{ rotate: "45deg" }] }} />
           <View style={{ width: "65%", height: stroke * 1.2, backgroundColor: color, position: "absolute", right: "10%", top: "38%", transform: [{ rotate: "-48deg" }] }} />
+        </View>
+      );
+
+    case "close":
+      return (
+        <View style={{ width: "100%", height: "100%", alignItems: "center", justifyContent: "center" }}>
+          <View style={{ width: "75%", height: stroke, backgroundColor: color, position: "absolute", transform: [{ rotate: "45deg" }] }} />
+          <View style={{ width: "75%", height: stroke, backgroundColor: color, position: "absolute", transform: [{ rotate: "-45deg" }] }} />
+        </View>
+      );
+
+    case "share":
+      return (
+        <View style={{ width: "100%", height: "100%", alignItems: "center", justifyContent: "center" }}>
+          <Text style={{ fontSize: size * 0.75, color }}>↗️</Text>
+        </View>
+      );
+
+    case "shopping-bag":
+      return (
+        <View style={{ width: "100%", height: "100%", alignItems: "center", justifyContent: "center" }}>
+          <Text style={{ fontSize: size * 0.75, color }}>🛍️</Text>
         </View>
       );
 

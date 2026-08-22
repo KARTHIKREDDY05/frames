@@ -6,7 +6,7 @@ import { palette } from "@frames/ui";
 import { AppIcon } from "../components/AppIcon";
 import { FrameButton } from "../components/FrameButton";
 import { ImageCropperModal, type CropRatio } from "../components/ImageCropperModal";
-import { frameTemplateOptions, photoFilterOptions, PolaroidFrame } from "../components/PolaroidFrame";
+import { frameTemplateOptions, photoFilterOptions, PolaroidFrame, MAGNET_STAMP_OPTIONS } from "../components/PolaroidFrame";
 import { PrivacySelector } from "../components/PrivacySelector";
 import { createRemotePost } from "../services/supabase";
 import { useAppStore } from "../store/appStore";
@@ -21,6 +21,7 @@ export default function FrameEditor() {
   const [privacy, setPrivacy] = useState<Privacy>("FRIENDS");
   const [frameStyle, setFrameStyle] = useState<FrameStyle>("POLAROID");
   const [filterPreset, setFilterPreset] = useState<PhotoFilter>(pendingCaptureMeta?.filterPreset ?? "ORIGINAL");
+  const [magnetStamp, setMagnetStamp] = useState<string | null>("cherry");
   const [profileFeatured, setProfileFeatured] = useState(false);
   const [message, setMessage] = useState("");
   const [posting, setPosting] = useState(false);
@@ -72,6 +73,7 @@ export default function FrameEditor() {
             caption={caption || "Fresh from today"}
             frameStyle={frameStyle}
             filterPreset={filterPreset}
+            magnetStamp={magnetStamp}
           />
         </View>
       ) : (
@@ -82,6 +84,26 @@ export default function FrameEditor() {
           <FrameButton icon="camera" label="Open Camera" onPress={() => router.replace("/(tabs)/camera")} />
         </View>
       )}
+
+      {/* Magnetic Stamps & Fridge Pins Carousel */}
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionTitle}>Magnetic Stamps & Pins</Text>
+        <Text style={styles.sectionSubtitle}>Pin to Polaroid</Text>
+      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.choices}>
+        {MAGNET_STAMP_OPTIONS.map((option) => (
+          <Pressable
+            key={option.label}
+            onPress={() => setMagnetStamp(option.value)}
+            style={[styles.magnetChoiceCard, magnetStamp === option.value && styles.choiceActive]}
+          >
+            <Text style={{ fontSize: 24 }}>{option.icon}</Text>
+            <Text numberOfLines={1} style={[styles.choiceLabel, magnetStamp === option.value && styles.choiceLabelActive]}>
+              {option.label}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
 
       {/* Frame Styles Carousel */}
       <View style={styles.sectionHeaderRow}>
@@ -135,6 +157,7 @@ export default function FrameEditor() {
           </Pressable>
         ))}
       </ScrollView>
+
 
       {/* Caption & Assistant */}
       <View style={styles.card}>
@@ -258,6 +281,7 @@ const styles = StyleSheet.create({
   choiceGroup: { color: palette.mutedBrown, fontWeight: "800", fontSize: 9 },
   choiceLabelActive: { color: palette.ink },
   filterCard: { width: 88, backgroundColor: palette.whitePaper, borderRadius: 8, borderWidth: 1.5, borderColor: palette.ink, padding: 8, gap: 4, shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0 },
+  magnetChoiceCard: { width: 78, backgroundColor: palette.whitePaper, borderRadius: 8, borderWidth: 1.5, borderColor: palette.ink, padding: 8, gap: 4, alignItems: "center", justifyContent: "center", shadowColor: palette.ink, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0 },
   filterPreview: { height: 48, borderRadius: 4, borderWidth: 1, borderColor: palette.ink },
   preview_FILMSTRIP: { backgroundColor: "#181415", borderColor: "#181415" },
   preview_NEGATIVE_STRIP: { backgroundColor: "#0D0F13", borderColor: "#0D0F13" },

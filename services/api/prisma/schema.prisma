@@ -64,6 +64,7 @@ model User {
   shareLinks     ShareLink[]
   notifications  Notification[]
   refreshTokens  RefreshToken[]
+  printOrders    PrintOrder[]
   requested      Friendship[]   @relation("requester")
   received       Friendship[]   @relation("receiver")
 }
@@ -213,6 +214,16 @@ model ShareLink {
   createdAt    DateTime  @default(now())
 }
 
+enum PrintOrderStatus {
+  PENDING
+  SUBMITTED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  FAILED
+}
+
 model Notification {
   id        String   @id @default(cuid())
   userId    String
@@ -224,3 +235,26 @@ model Notification {
   metadata  Json     @default("{}")
   createdAt DateTime @default(now())
 }
+
+model PrintOrder {
+  id                String           @id @default(cuid())
+  orderId           String           @unique
+  userId            String
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateTitle         String
+  photoUrls         String[]
+  shippingName      String
+  shippingAddress   String
+  city              String
+  zipCode           String
+  country           String           @default("IN")
+  totalPrice        String
+  status            PrintOrderStatus @default(PENDING)
+  partnerOrderId    String?
+  trackingNumber    String?
+  estimatedDelivery DateTime?
+  metadata          Json             @default("{}")
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+

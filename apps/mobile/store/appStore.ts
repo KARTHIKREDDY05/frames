@@ -1,6 +1,38 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { DailyFrameDto, PhotoFilter, PostDto, Privacy, UserDto } from "@frames/types";
+import type { DailyFrameDto, PhotoFilter, PostDto, PrintOrderDto, Privacy, UserDto } from "@frames/types";
+import { zustandUniversalStorage } from "../services/universalStorage";
+
+export interface TimeCapsule {
+  id: string;
+  title: string;
+  unlockDate: string; // ISO date string
+  mediaUrl: string;
+  note: string;
+  sealColor: "crimson" | "gold" | "sapphire" | "emerald";
+  isUnlocked: boolean;
+  createdAt: string;
+}
+
+export interface FridgeMagnetItem {
+  id: string;
+  postId: string;
+  mediaUrl: string;
+  caption?: string;
+  magnetType: "cherry" | "lemon" | "star" | "flower" | "heart" | "clover" | "polaroid_clip";
+  rotation: number; // degrees
+  createdAt: string;
+}
+
+export interface VoiceMemory {
+  id: string;
+  postId?: string;
+  audioUrl: string;
+  durationSec: number;
+  speakerName: string;
+  caption: string;
+  createdAt: string;
+}
 
 interface Account extends UserDto {
   password?: string;
@@ -50,7 +82,8 @@ export interface ChatMessage {
   fromUserId: string;
   text: string;
   mediaUrl?: string;
-  mediaType?: "IMAGE" | "VIDEO";
+  mediaType?: "IMAGE" | "VIDEO" | "VOICE";
+  audioDurationSec?: number;
   status: "SENT" | "DELIVERED" | "SEEN";
   deliveredAt?: string;
   seenAt?: string;
@@ -82,6 +115,10 @@ interface AppState {
   shareLinks: ShareRecord[];
   pendingMediaUrl: string | null;
   pendingCaptureMeta: CaptureMeta | null;
+  timeCapsules: TimeCapsule[];
+  fridgeItems: FridgeMagnetItem[];
+  voiceMemories: VoiceMemory[];
+  printOrders: PrintOrderDto[];
   setCurrentUser: (user: UserDto | null) => void;
   setAuthChecked: (checked: boolean) => void;
   setPosts: (posts: PostDto[]) => void;
@@ -90,6 +127,9 @@ interface AppState {
   mergeChatMessages: (messages: ChatMessage[]) => void;
   mergeNotifications: (notifications: UserNotification[]) => void;
   mergeComments: (comments: FrameComment[]) => void;
+  addPrintOrder: (order: PrintOrderDto) => void;
+  setPrintOrders: (orders: PrintOrderDto[]) => void;
+  updatePrintOrderStatus: (orderId: string, status: string, trackingNumber?: string) => void;
   signUp: (input: { displayName: string; username: string; email: string; password?: string }) => UserDto;
   signIn: (email: string, password: string) => UserDto | null;
   updateProfile: (input: Partial<Pick<UserDto, "displayName" | "username" | "email" | "bio" | "avatarUrl" | "defaultPrivacy" | "profileVisibility">>) => { ok: boolean; message?: string };
@@ -100,7 +140,7 @@ interface AppState {
   deletePost: (postId: string) => void;
   reactToPost: (postId: string) => void;
   commentOnPost: (postId: string, text: string) => void;
-  sendChatMessage: (threadUserId: string, text: string) => void;
+  sendChatMessage: (threadUserId: string, text: string, options?: { mediaUrl?: string; mediaType?: "IMAGE" | "VIDEO" | "VOICE"; audioDurationSec?: number }) => void;
   sendFollowRequest: (targetUserId: string) => void;
   acceptFollowRequest: (requestId: string) => void;
   declineFollowRequest: (requestId: string) => void;
@@ -110,6 +150,11 @@ interface AppState {
   setPendingMediaUrl: (uri: string | null) => void;
   setPendingCaptureMeta: (meta: CaptureMeta | null) => void;
   archiveExpiredNow: () => void;
+  createTimeCapsule: (input: Omit<TimeCapsule, "id" | "isUnlocked" | "createdAt">) => TimeCapsule;
+  unlockTimeCapsule: (id: string) => void;
+  pinToFridge: (input: Omit<FridgeMagnetItem, "id" | "createdAt">) => void;
+  unpinFromFridge: (id: string) => void;
+  saveVoiceMemory: (input: Omit<VoiceMemory, "id" | "createdAt">) => VoiceMemory;
 }
 
 const nowIso = () => new Date().toISOString();
@@ -155,6 +200,7 @@ export const useAppStore = create<AppState>()(
       likedPostIds: [],
       comments: [],
       shareLinks: [],
+      printOrders: [],
       pendingMediaUrl: null,
       pendingCaptureMeta: null,
       setCurrentUser: (user) => set({ currentUser: user }),
@@ -181,6 +227,17 @@ export const useAppStore = create<AppState>()(
         [...state.comments, ...comments].forEach((comment) => byId.set(comment.id, comment));
         return { comments: Array.from(byId.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) };
       }),
+      addPrintOrder: (order) => set((state) => ({
+        printOrders: [order, ...state.printOrders.filter((o) => o.id !== order.id && o.orderId !== order.orderId)]
+      })),
+      setPrintOrders: (orders) => set({ printOrders: orders }),
+      updatePrintOrderStatus: (orderId, status, trackingNumber) => set((state) => ({
+        printOrders: state.printOrders.map((o) =>
+          o.id === orderId || o.orderId === orderId
+            ? { ...o, status: status as any, trackingNumber: trackingNumber || o.trackingNumber, updatedAt: nowIso() }
+            : o
+        )
+      })),
       signUp: (input) => {
         const user = makeUser(input);
         set((state) => ({
@@ -310,15 +367,80 @@ export const useAppStore = create<AppState>()(
           ] : state.notifications
         }));
       },
-      sendChatMessage: (threadUserId, text) => {
+      timeCapsules: [
+        {
+          id: "capsule-1",
+          title: "Message for Baby's 18th Birthday 🎂",
+          unlockDate: "2030-05-14T00:00:00.000Z",
+          mediaUrl: "https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=600",
+          note: "Never forget how tiny your little hand was when you held my finger for the first time.",
+          sealColor: "crimson",
+          isUnlocked: false,
+          createdAt: new Date(Date.now() - 15 * 86400000).toISOString()
+        },
+        {
+          id: "capsule-2",
+          title: "Next Mother's Day Time Vault 🌸",
+          unlockDate: new Date(Date.now() + 60 * 86400000).toISOString(),
+          mediaUrl: "https://images.unsplash.com/photo-1492725764893-90b379c2b6e7?w=600",
+          note: "A secret love letter and thank you note for everything you do silently every day.",
+          sealColor: "gold",
+          isUnlocked: false,
+          createdAt: new Date(Date.now() - 5 * 86400000).toISOString()
+        }
+      ],
+      fridgeItems: [
+        {
+          id: "fridge-1",
+          postId: "sample-1",
+          mediaUrl: "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=500",
+          caption: "Sunday pancake morning with mom 🥞",
+          magnetType: "cherry",
+          rotation: -4,
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: "fridge-2",
+          postId: "sample-2",
+          mediaUrl: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=500",
+          caption: "First day riding bicycle without training wheels! 🚲",
+          magnetType: "star",
+          rotation: 3,
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: "fridge-3",
+          postId: "sample-3",
+          mediaUrl: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=500",
+          caption: "Family sunset by the lake 🌅",
+          magnetType: "lemon",
+          rotation: -2,
+          createdAt: new Date().toISOString()
+        }
+      ],
+      voiceMemories: [
+        {
+          id: "voice-1",
+          postId: "sample-1",
+          audioUrl: "https://sample-audio.org/sample-audio-1.mp3",
+          durationSec: 14,
+          speakerName: "Mom",
+          caption: "Lullaby & laugh after pancake disaster ❤️",
+          createdAt: new Date().toISOString()
+        }
+      ],
+      sendChatMessage: (threadUserId, text, options) => {
         const clean = text.trim();
         const user = get().currentUser;
-        if (!user || !clean) return;
+        if (!user || (!clean && !options?.mediaUrl)) return;
         const message: ChatMessage = {
           id: `chat-${Date.now()}`,
           threadUserId,
           fromUserId: user.id,
           text: clean,
+          mediaUrl: options?.mediaUrl,
+          mediaType: options?.mediaType ?? "IMAGE",
+          audioDurationSec: options?.audioDurationSec,
           status: "DELIVERED",
           deliveredAt: nowIso(),
           createdAt: nowIso()
@@ -456,12 +578,53 @@ export const useAppStore = create<AppState>()(
           posts: state.posts.filter((post) => post.user.id !== user.id),
           dailyFrames: [frame, ...state.dailyFrames.filter((item) => item.date !== today)]
         }));
+      },
+      createTimeCapsule: (input) => {
+        const capsule: TimeCapsule = {
+          ...input,
+          id: `capsule-${Date.now()}`,
+          isUnlocked: new Date(input.unlockDate).getTime() <= Date.now(),
+          createdAt: nowIso()
+        };
+        set((state) => ({ timeCapsules: [capsule, ...state.timeCapsules] }));
+        return capsule;
+      },
+      unlockTimeCapsule: (id) => {
+        set((state) => ({
+          timeCapsules: state.timeCapsules.map((c) => (c.id === id ? { ...c, isUnlocked: true } : c))
+        }));
+      },
+      pinToFridge: (input) => {
+        const item: FridgeMagnetItem = {
+          ...input,
+          id: `fridge-${Date.now()}`,
+          createdAt: nowIso()
+        };
+        set((state) => ({
+          fridgeItems: [item, ...state.fridgeItems.filter((f) => f.postId !== input.postId)]
+        }));
+      },
+      unpinFromFridge: (id) => {
+        set((state) => ({
+          fridgeItems: state.fridgeItems.filter((item) => item.id !== id)
+        }));
+      },
+      saveVoiceMemory: (input) => {
+        const memory: VoiceMemory = {
+          ...input,
+          id: `voice-${Date.now()}`,
+          createdAt: nowIso()
+        };
+        set((state) => ({
+          voiceMemories: [memory, ...state.voiceMemories]
+        }));
+        return memory;
       }
     }),
     {
       name: "frames-app-v2",
-      version: 10,
-      storage: createJSONStorage(() => localStorage)
+      version: 11,
+      storage: createJSONStorage(() => zustandUniversalStorage)
     }
   )
 );

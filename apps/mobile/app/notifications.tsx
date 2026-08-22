@@ -144,7 +144,24 @@ export default function NotificationsScreen() {
 
 function PostNotificationCard({ notification }: { notification: UserNotification }) {
   const icon = notification.type === "REACTION" ? "heart" : notification.type === "COMMENT" ? "comment" : notification.type === "SHARE" ? "send" : "bell";
-  const targetUrl = notification.postId ? (notification.type === "COMMENT" ? `/comments/${notification.postId}` : `/post/${notification.postId}`) : "/(tabs)/home";
+
+  // Deep-link routing based on notification type
+  let targetUrl: string = "/(tabs)/home";
+  if (notification.type === "COMMENT" && notification.postId) {
+    targetUrl = `/comments/${notification.postId}`;
+  } else if (notification.postId) {
+    targetUrl = `/post/${notification.postId}`;
+  } else if (
+    notification.type === "ARCHIVE_READY" ||
+    (notification.body ?? "").toLowerCase().includes("print") ||
+    (notification.title ?? "").toLowerCase().includes("print") ||
+    (notification.title ?? "").toLowerCase().includes("shipped") ||
+    (notification.title ?? "").toLowerCase().includes("delivered")
+  ) {
+    targetUrl = "/orders";
+  } else if ((notification.body ?? "").toLowerCase().includes("daily frame") || (notification.title ?? "").toLowerCase().includes("frame is ready")) {
+    targetUrl = "/(tabs)/archive";
+  }
 
   return (
     <Link href={targetUrl as any} asChild>
